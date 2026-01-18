@@ -34,7 +34,7 @@
 ### 1. **Сервис на Go (роутер/диспетчер)**
 - **Брокеры сообщений**: RabbitMQ, Kafka, Redis Streams
 - **Библиотеки Go**:
-    - Для RabbitMQ: `streadway/amqp`
+    - Для RabbitMQ: `rabbitmq/amqp091-gо`
     - Для Kafka: `segmentio/kafka-go`
     - Для Redis: `redis/go-redis`
 - **Параллелизм**: goroutines + каналы (channels) для каждого потребителя
