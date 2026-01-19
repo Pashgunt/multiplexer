@@ -8,7 +8,8 @@ import (
 )
 
 type Loader struct {
-	Validator *Validator
+	Validator   *Validator
+	Environment *Environment
 }
 
 func (loader *Loader) Load(configPath string) (*types.Config, error) {
@@ -22,9 +23,29 @@ func (loader *Loader) Load(configPath string) (*types.Config, error) {
 		return nil, err
 	}
 
-	config := types.Config{}
+	return loader.decodeAndReplaceEnv(data)
+}
 
-	if err = yaml.Unmarshal(data, &config); err != nil {
+func (loader *Loader) decodeAndReplaceEnv(data []byte) (*types.Config, error) {
+	var dataForReplaceEnvironment map[string]interface{}
+
+	if err := yaml.Unmarshal(data, &dataForReplaceEnvironment); err != nil {
+		return nil, err
+	}
+
+	if err := loader.Environment.Replace(dataForReplaceEnvironment); err != nil {
+		return nil, err
+	}
+
+	yamlWithEnvironment, err := yaml.Marshal(dataForReplaceEnvironment)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var config types.Config
+
+	if err = yaml.Unmarshal(yamlWithEnvironment, &config); err != nil {
 		return nil, err
 	}
 

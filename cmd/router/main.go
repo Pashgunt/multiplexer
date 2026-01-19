@@ -3,6 +3,8 @@ package main
 import "transport/internal/infrastructure/config"
 
 func main() {
-	loader := config.Loader{Validator: &config.Validator{}}
+	environment := &config.Environment{}
+	environment.Init()
+	loader := config.Loader{Validator: &config.Validator{}, Environment: environment}
 	loader.Load("./configs/transport.yaml")
 }
