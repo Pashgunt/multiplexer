@@ -34,16 +34,16 @@ services:
       - zookeeper_data:/var/lib/zookeeper/data
       - zookeeper_log:/var/lib/zookeeper/log
     healthcheck:
-      test: [ "CMD", "zkServer.sh", "status" ]
-      interval: 30s
-      timeout: 10s
+      test: [ "CMD", "nc", "-z", "localhost", "2181" ]
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 20s
     networks:
       - message-network
 
   kafka:
-    image: apache/kafka:3.7.0
+    image: confluentinc/cp-kafka:7.4.0
     container_name: kafka-local
     ports:
       - "${KAFKA_PORT}:9092"
@@ -60,13 +60,14 @@ services:
       KAFKA_LOG_RETENTION_HOURS: ${KAFKA_LOG_RETENTION_HOURS}
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPICS_ENABLE}
       KAFKA_NUM_PARTITIONS: ${KAFKA_NUM_PARTITIONS}
+      KAFKA_LISTENERS: ${KAFKA_LISTENERS}
+      KAFKA_CFG_KRAFT_ENABLED: ${KAFKA_CFG_KRAFT_ENABLED}
     volumes:
       - kafka_data:/var/lib/kafka/data
     depends_on:
-      zookeeper:
-        condition: service_healthy
+      - zookeeper
     healthcheck:
-      test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      test: [ "CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list" ]
       interval: 30s
       timeout: 10s
       retries: 3
