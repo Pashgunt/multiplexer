@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	SepBrokers = ","
+	sepBrokers = ","
 )
 
 func convert(config types.Config) []Config {
@@ -22,7 +22,7 @@ func convert(config types.Config) []Config {
 		}
 
 		kafkaConfig = append(kafkaConfig, Config{
-			Brokers: strings.Split(topic.Options.Kafka.Brokers, SepBrokers),
+			Brokers: strings.Split(topic.Options.Kafka.Brokers, sepBrokers),
 			GroupID: topic.Options.Kafka.GroupId,
 			Topics:  topic.ConsumerTopics,
 		})
