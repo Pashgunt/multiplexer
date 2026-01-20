@@ -8,7 +8,7 @@ import (
 type Validator struct {
 }
 
-func (validator *Validator) ValidateFileExists(configPath string) error {
+func (validator *Validator) validateFileExists(configPath string) error {
 	info, err := os.Stat(configPath)
 
 	if err != nil {

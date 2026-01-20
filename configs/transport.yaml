@@ -1,34 +1,27 @@
-transports:
-  options:
-    kafka:
-      dsn: '%env(KAFKA_DSN)%'
-      broker.list: '%env(KAFKA_BROKER_LIST)%'
-      group.id: '%env(KAFKA_GROUP_ID)%'
+topics:
+  serviceAKafkaTopics:
+    options:
+      kafka:
+        broker.list: '%env(KAFKA_BROKER_LIST)%'
+        group.id: '%env(KAFKA_GROUP_ID)%'
+    consumer_topics:
+      - test1
+      - test2
 
-    rabbitmq:
-      host: '%env(RABBITMQ_HOST)%'
-      port: '%env(RABBITMQ_PORT)%'
-      vhost: '%env(RABBITMQ_VHOST)%'
+  serviceBKafkaTopics:
+    options:
+      kafka:
+        broker.list: '%env(KAFKA_BROKER_LIST)%'
+        group.id: '%env(KAFKA_GROUP_ID)%'
+    consumer_topics:
+      - test3
+      - test4
 
-    redis_stream:
-      address: '%env(REDIS_STREAM_ADDRESS)%'
-      db: '%env(REDIS_STREAM_DB)%'
-
-  topics:
-    alias-topic:
-      type: kafka
-      consumer_topics:
-        - test1
-        - test2
-
-    alias-topic2:
-      type: kafka
-      consumer_topics:
-        - test3
-        - test4
-
-    alias-topic3:
-      type: kafka
-      consumer_topics:
-        - test5
-        - test6
+  serviceCKafkaTopics:
+    options:
+      kafka:
+        broker.list: '%env(KAFKA_BROKER_LIST)%'
+        group.id: '%env(KAFKA_GROUP_ID)%'
+    consumer_topics:
+      - test5
+      - test6

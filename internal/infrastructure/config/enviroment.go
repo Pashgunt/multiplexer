@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	KeyTransports = "transports"
-	KeyOptions    = "options"
-	Filenames     = ".env"
-	EmptyEnvName  = ""
+	KeyTopics    = "topics"
+	KeyOptions   = "options"
+	Filenames    = ".env"
+	EmptyEnvName = ""
 )
 
 type TransportOption = map[string]interface{}
@@ -28,24 +28,28 @@ func (env *Environment) Init() error {
 	return nil
 }
 
-func (env *Environment) Replace(data map[string]interface{}) error {
-	options, isset := data[KeyTransports].(TransportOption)[KeyOptions]
+func (env *Environment) replace(data map[string]interface{}) error {
+	topics, isset := data[KeyTopics]
 
 	if !isset {
-		return errors.New("options not found in data")
+		return errors.New("topics not found in data")
 	}
 
-	for _, value := range options.(TransportOption) {
+	for _, value := range topics.(TransportOption) {
 		transportOptionValue := value.(TransportOption)
 
-		for envKey, envValue := range transportOptionValue {
-			envName := env.extractEnvName(envValue.(string))
+		for _, optionsParam := range transportOptionValue[KeyOptions].(TransportOption) {
+			optionParamValue := optionsParam.(TransportOption)
 
-			if envName == EmptyEnvName {
-				continue
+			for envKey, envValue := range optionParamValue {
+				envName := env.extractEnvName(envValue.(string))
+
+				if envName == EmptyEnvName {
+					continue
+				}
+
+				optionParamValue[envKey] = env.get(envName)
 			}
-
-			transportOptionValue[envKey] = env.get(envName)
 		}
 	}
 

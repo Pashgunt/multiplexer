@@ -8,12 +8,16 @@ import (
 )
 
 type Loader struct {
-	Validator   *Validator
-	Environment *Environment
+	validator   *Validator
+	environment *Environment
+}
+
+func NewLoader(validator *Validator, environment *Environment) *Loader {
+	return &Loader{validator: validator, environment: environment}
 }
 
 func (loader *Loader) Load(configPath string) (*types.Config, error) {
-	if err := loader.Validator.ValidateFileExists(configPath); err != nil {
+	if err := loader.validator.validateFileExists(configPath); err != nil {
 		return nil, err
 	}
 
@@ -33,7 +37,7 @@ func (loader *Loader) decodeAndReplaceEnv(data []byte) (*types.Config, error) {
 		return nil, err
 	}
 
-	if err := loader.Environment.Replace(dataForReplaceEnvironment); err != nil {
+	if err := loader.environment.replace(dataForReplaceEnvironment); err != nil {
 		return nil, err
 	}
 
