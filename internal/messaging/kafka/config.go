@@ -1,7 +1,7 @@
 package kafka
 
 type Config struct {
-	Brokers []string
+	Broker  string
 	Topics  []string
 	GroupID string
 }

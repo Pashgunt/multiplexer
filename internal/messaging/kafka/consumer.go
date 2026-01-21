@@ -5,12 +5,6 @@ import (
 )
 
 type Consumer struct {
-}
-
-func (consumer *Consumer) consume(config Config) *kafka.Reader {
-	return kafka.NewReader(kafka.ReaderConfig{
-		Brokers:     config.Brokers,
-		GroupTopics: config.Topics,
-		GroupID:     config.GroupID,
-	})
+	reader  *kafka.Reader
+	isReady bool
 }

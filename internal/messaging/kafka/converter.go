@@ -10,23 +10,50 @@ const (
 )
 
 func convert(config types.Config) []Config {
-	var kafkaConfig []Config
-
 	if len(config.Topics) == 0 {
-		return kafkaConfig
+		return []Config{}
 	}
+
+	kafkaConfig := make(map[string]Config)
 
 	for _, topic := range config.Topics {
 		if topic.Options == nil || topic.Options.Kafka == nil {
 			continue
 		}
 
-		kafkaConfig = append(kafkaConfig, Config{
-			Brokers: strings.Split(topic.Options.Kafka.Brokers, sepBrokers),
-			GroupID: topic.Options.Kafka.GroupId,
-			Topics:  topic.ConsumerTopics,
-		})
+		brokers := strings.Split(topic.Options.Kafka.Brokers, sepBrokers)
+
+		if len(brokers) == 0 {
+			continue
+		}
+
+		for _, broker := range brokers {
+			key := broker + topic.Options.Kafka.GroupId
+			kafkaBrokerConfig, isset := kafkaConfig[key]
+
+			if !isset {
+				kafkaConfig[key] = Config{
+					Broker:  broker,
+					GroupID: topic.Options.Kafka.GroupId,
+					Topics:  topic.ConsumerTopics,
+				}
+
+				continue
+			}
+
+			kafkaBrokerConfig.Topics = append(kafkaBrokerConfig.Topics, topic.ConsumerTopics...)
+		}
 	}
 
-	return kafkaConfig
+	if len(kafkaConfig) == 0 {
+		return []Config{}
+	}
+
+	kafkaConfigList := make([]Config, 0, len(kafkaConfig))
+
+	for _, kafkaConfigItem := range kafkaConfig {
+		kafkaConfigList = append(kafkaConfigList, kafkaConfigItem)
+	}
+
+	return kafkaConfigList
 }
