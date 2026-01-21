@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"transport/internal/infrastructure/config/types"
+	"transport/internal/infrastructure/pool"
 
 	"gopkg.in/yaml.v3"
 )
@@ -21,6 +22,9 @@ func (loader *Loader) Load(configPath string) (*types.Config, error) {
 		return nil, err
 	}
 
+	data := pool.BinaryDataPool.Get().([]byte)
+	defer pool.PutBinaryDataPool(data)
+
 	data, err := os.ReadFile(configPath)
 
 	if err != nil {
@@ -31,7 +35,8 @@ func (loader *Loader) Load(configPath string) (*types.Config, error) {
 }
 
 func (loader *Loader) decodeAndReplaceEnv(data []byte) (*types.Config, error) {
-	var dataForReplaceEnvironment map[string]interface{}
+	var dataForReplaceEnvironment = pool.ConfigMapPool.Get().(map[string]interface{})
+	defer pool.PutConfigMapPool(dataForReplaceEnvironment)
 
 	if err := yaml.Unmarshal(data, &dataForReplaceEnvironment); err != nil {
 		return nil, err
