@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
+	"transport/internal/application/observability/logging"
 	kafkaconnection "transport/internal/domain/connection"
 	"transport/internal/infrastructure/config"
 	"transport/internal/messaging/kafka"
@@ -13,7 +15,7 @@ func main() {
 	environment.Init()
 	loader := config.NewLoader(&config.Validator{}, environment)
 	cfg, _ := loader.Load("./configs/transport.yaml")
-	adapter := kafka.NewAdapter(*cfg)
+	adapter := kafka.NewAdapter(*cfg, logging.NewKafkaConnectionLogger(slog.LevelDebug))
 	adapter.ConnectAll(kafkaconnection.DefaultKafkaConn())
 	time.Sleep(10 * time.Second)
 	conns := adapter.Connections()

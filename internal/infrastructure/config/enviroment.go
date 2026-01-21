@@ -48,7 +48,7 @@ func (env *Environment) replace(data map[string]interface{}) error {
 					continue
 				}
 
-				optionParamValue[envKey] = env.get(envName)
+				optionParamValue[envKey] = env.Get(envName)
 			}
 		}
 	}
@@ -68,6 +68,6 @@ func (env *Environment) extractEnvName(envString string) string {
 	return EmptyEnvName
 }
 
-func (env *Environment) get(envName string) string {
+func (env *Environment) Get(envName string) string {
 	return os.Getenv(envName)
 }

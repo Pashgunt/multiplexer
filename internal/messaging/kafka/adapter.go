@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 	"time"
+	"transport/internal/application/observability/logging"
 	kafkaconnection "transport/internal/domain/connection"
 	"transport/internal/infrastructure/config/types"
 )
@@ -12,12 +13,14 @@ type Adapter struct {
 	connections []*Connection
 	configs     []Config
 	mutex       sync.RWMutex
+	logger      logging.KafkaConnectionLogger
 }
 
-func NewAdapter(appConfig types.Config) *Adapter {
+func NewAdapter(appConfig types.Config, logger logging.KafkaConnectionLogger) *Adapter {
 	adapter := &Adapter{
 		configs: convert(appConfig),
 		mutex:   sync.RWMutex{},
+		logger:  logger,
 	}
 	adapter.connections = make([]*Connection, 0, len(adapter.configs))
 
@@ -52,9 +55,17 @@ func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 				connection, err := adapter.doConnect(config, kafka.Timeout(), kafka.RetryCount())
 
 				if err != nil {
+					adapter.logger.Info(logging.KafkaConnectionLogEntity{
+						Message: "Failed to connect to Kafka. " + err.Error(),
+						Broker:  config.Broker,
+					})
 					continue
 				}
 
+				adapter.logger.Info(logging.KafkaConnectionLogEntity{
+					Message: "Successfully connected to Kafka.",
+					Broker:  config.Broker,
+				})
 				resultsChan <- connection
 			}
 		}(i)
@@ -77,6 +88,10 @@ func (adapter *Adapter) doConnect(config Config, timeout time.Duration, retryCou
 	connection, err := NewConnection(connCtx, config)
 
 	if err != nil && retryCount > 0 {
+		adapter.logger.Info(logging.KafkaConnectionLogEntity{
+			Message: "Failed to connect to Kafka. Retrying... " + err.Error(),
+			Broker:  config.Broker,
+		})
 		return adapter.doConnect(config, timeout, retryCount-1)
 	}
 
