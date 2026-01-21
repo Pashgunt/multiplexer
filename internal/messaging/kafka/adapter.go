@@ -45,14 +45,14 @@ func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 
 	go adapter.fillConnections(resultsChan)
 
-	for i := 0; i < kafka.WorkerCount(); i++ {
+	for workerIndex := 0; workerIndex < kafka.WorkerCount(); workerIndex++ {
 		wg.Add(1)
 
-		go func(i int) {
+		go func() {
 			defer wg.Done()
 
 			for config := range configsChan {
-				connection, err := adapter.doConnect(config, kafka.Timeout(), kafka.RetryCount())
+				connection, err := adapter.doConnect(config, kafka.Timeout(), kafka.RetryTimeout(), kafka.RetryCount())
 
 				if err != nil {
 					adapter.logger.Info(logging.KafkaConnectionLogEntity{
@@ -68,7 +68,7 @@ func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 				})
 				resultsChan <- connection
 			}
-		}(i)
+		}()
 	}
 
 	adapter.fillConfigs(configsChan)
@@ -81,7 +81,12 @@ func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 	}()
 }
 
-func (adapter *Adapter) doConnect(config Config, timeout time.Duration, retryCount int) (*Connection, error) {
+func (adapter *Adapter) doConnect(
+	config Config,
+	timeout time.Duration,
+	retryTimeout time.Duration,
+	retryCount int,
+) (*Connection, error) {
 	connCtx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -92,7 +97,11 @@ func (adapter *Adapter) doConnect(config Config, timeout time.Duration, retryCou
 			Message: "Failed to connect to Kafka. Retrying... " + err.Error(),
 			Broker:  config.Broker,
 		})
-		return adapter.doConnect(config, timeout, retryCount-1)
+
+		select {
+		case <-time.After(retryTimeout):
+			return adapter.doConnect(config, timeout, retryTimeout, retryCount-1)
+		}
 	}
 
 	return connection, err

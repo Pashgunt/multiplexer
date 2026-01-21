@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"time"
 	"transport/internal/application/observability/logging"
@@ -18,6 +17,5 @@ func main() {
 	adapter := kafka.NewAdapter(*cfg, logging.NewKafkaConnectionLogger(slog.LevelDebug))
 	adapter.ConnectAll(kafkaconnection.DefaultKafkaConn())
 	time.Sleep(10 * time.Second)
-	conns := adapter.Connections()
-	fmt.Println("conns: ", conns)
+	adapter.Connections()
 }
