@@ -7,9 +7,14 @@ import (
 )
 
 type Connection struct {
+	uuid       string
 	connection *kafka.Conn
 	config     Config
 	consumers  []*Consumer
+}
+
+func (connection *Connection) Close() error {
+	return connection.connection.Close()
 }
 
 func NewConnection(ctx context.Context, config Config) (*Connection, error) {

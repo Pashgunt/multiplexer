@@ -81,6 +81,33 @@ func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 	}()
 }
 
+func (adapter *Adapter) CloseAll() {
+	if len(adapter.connections) == 0 {
+		return
+	}
+
+	errorCloseConnections := make([]*Connection, 0, len(adapter.connections))
+
+	for _, connection := range adapter.connections {
+		if err := connection.Close(); err != nil {
+			adapter.logger.Info(logging.KafkaConnectionLogEntity{
+				Message: "Error closing Kafka connection: " + err.Error(),
+			})
+			errorCloseConnections = append(errorCloseConnections, connection)
+		}
+
+		adapter.logger.Info(logging.KafkaConnectionLogEntity{
+			Message: "Successfully closed Kafka connections.",
+		})
+	}
+
+	adapter.connections = errorCloseConnections
+
+	if len(adapter.connections) > 0 {
+		adapter.CloseAll()
+	}
+}
+
 func (adapter *Adapter) doConnect(
 	config Config,
 	timeout time.Duration,

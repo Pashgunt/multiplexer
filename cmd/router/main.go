@@ -1,21 +1,22 @@
 package main
 
 import (
-	"log/slog"
+	"context"
+	"os/signal"
+	"syscall"
 	"time"
-	"transport/internal/application/observability/logging"
-	kafkaconnection "transport/internal/domain/connection"
-	"transport/internal/infrastructure/config"
-	"transport/internal/messaging/kafka"
 )
 
 func main() {
-	environment := &config.Environment{}
-	environment.Init()
-	loader := config.NewLoader(&config.Validator{}, environment)
-	cfg, _ := loader.Load("./configs/transport.yaml")
-	adapter := kafka.NewAdapter(*cfg, logging.NewKafkaConnectionLogger(slog.LevelDebug))
-	adapter.ConnectAll(kafkaconnection.DefaultKafkaConn())
-	time.Sleep(10 * time.Second)
-	adapter.Connections()
+	ctxGracefulShutdown, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+
+	//services
+
+	<-ctxGracefulShutdown.Done()
+	ctxShutdown, stopCtxShutdown := context.WithTimeout(context.Background(), 1*time.Second)
+	defer func() {
+		stop()
+		stopCtxShutdown()
+	}()
+	<-ctxShutdown.Done()
 }
