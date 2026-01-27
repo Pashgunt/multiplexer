@@ -14,13 +14,18 @@ type Adapter struct {
 	configs     []Config
 	mutex       sync.RWMutex
 	logger      logging.KafkaConnectionLogger
+	wg          sync.WaitGroup
+	connected   bool
+	connectChan chan struct{}
 }
 
 func NewAdapter(appConfig types.Config, logger logging.KafkaConnectionLogger) *Adapter {
 	adapter := &Adapter{
-		configs: convert(appConfig),
-		mutex:   sync.RWMutex{},
-		logger:  logger,
+		configs:     convert(appConfig),
+		mutex:       sync.RWMutex{},
+		logger:      logger,
+		connected:   false,
+		connectChan: make(chan struct{}, 1),
 	}
 	adapter.connections = make([]*Connection, 0, len(adapter.configs))
 
@@ -37,17 +42,47 @@ func (adapter *Adapter) Connections() []*Connection {
 	return copyConnections
 }
 
+func (adapter *Adapter) WaitForConnections(timeout time.Duration) error {
+	if adapter.connected {
+		return nil
+	}
+
+	if timeout > 0 {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+
+		select {
+		case <-adapter.connectChan:
+			adapter.connected = true
+
+			return nil
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	} else {
+		<-adapter.connectChan
+		adapter.connected = true
+
+		return nil
+	}
+}
+
 func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 	configsChan := make(chan Config, len(adapter.configs))
 	resultsChan := make(chan *Connection, len(adapter.configs))
 
 	var wg sync.WaitGroup
 
-	go adapter.fillConnections(resultsChan)
+	adapter.wg.Add(1)
+
+	go func() {
+		defer adapter.wg.Done()
+		adapter.fillConnections(resultsChan)
+	}()
+
+	wg.Add(kafka.WorkerCount())
 
 	for workerIndex := 0; workerIndex < kafka.WorkerCount(); workerIndex++ {
-		wg.Add(1)
-
 		go func() {
 			defer wg.Done()
 
@@ -72,7 +107,6 @@ func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 	}
 
 	adapter.fillConfigs(configsChan)
-
 	close(configsChan)
 
 	go func() {
@@ -117,7 +151,7 @@ func (adapter *Adapter) doConnect(
 	connCtx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	connection, err := NewConnection(connCtx, config)
+	connection, err := NewConnection(connCtx, config, adapter.logger)
 
 	if err != nil && retryCount > 0 {
 		adapter.logger.Info(logging.KafkaConnectionLogEntity{
@@ -141,9 +175,27 @@ func (adapter *Adapter) fillConfigs(configsChan chan<- Config) {
 }
 
 func (adapter *Adapter) fillConnections(resultsChan <-chan *Connection) {
+	connectionsCount := 0
+	expectedCount := len(adapter.configs)
+
 	for connection := range resultsChan {
 		adapter.mutex.Lock()
 		adapter.connections = append(adapter.connections, connection)
 		adapter.mutex.Unlock()
+
+		connectionsCount++
+
+		if connectionsCount == expectedCount {
+			select {
+			case adapter.connectChan <- struct{}{}:
+			default:
+
+			}
+		}
+	}
+
+	select {
+	case adapter.connectChan <- struct{}{}:
+	default:
 	}
 }
