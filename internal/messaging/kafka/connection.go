@@ -15,20 +15,20 @@ type Connection struct {
 	logger     logging.KafkaConnectionLogger
 }
 
+func (connection *Connection) SetConsumer(consumer *Consumer) {
+	connection.consumer = consumer
+}
+
+func (connection *Connection) Config() Config {
+	return connection.config
+}
+
 func (connection *Connection) Consumer() *Consumer {
 	return connection.consumer
 }
 
 func (connection *Connection) Close() error {
 	return connection.connection.Close()
-}
-
-func (connection *Connection) StartConsumers() {
-	if connection.connection == nil {
-		panic("Consumer not initialized")
-	}
-
-	connection.consumer = NewConsumer(connection.config, connection.logger)
 }
 
 func NewConnection(ctx context.Context, config Config, logger logging.KafkaConnectionLogger) (*Connection, error) {

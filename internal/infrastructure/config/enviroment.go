@@ -20,6 +20,13 @@ type TransportOption = map[string]interface{}
 type Environment struct {
 }
 
+func NewEnvironment() *Environment {
+	env := &Environment{}
+	env.Init()
+
+	return env
+}
+
 func (env *Environment) Init() error {
 	if err := godotenv.Load(Filenames); err != nil {
 		return errors.New("error loading .env file")

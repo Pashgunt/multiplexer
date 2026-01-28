@@ -27,7 +27,7 @@ func NewConsumer(config Config, logger logging.KafkaConnectionLogger) *Consumer 
 	}
 }
 
-func (consumer *Consumer) Fetch() kafka.Message {
+func (consumer *Consumer) Fetch() (kafka.Message, error) {
 	consumer.logger.Info(logging.KafkaConnectionLogEntity{
 		Message: "Waiting a message",
 		Broker:  strings.Join(consumer.reader.Config().Brokers, ","),
@@ -39,18 +39,18 @@ func (consumer *Consumer) Fetch() kafka.Message {
 			Broker:  strings.Join(consumer.reader.Config().Brokers, ","),
 		})
 
-		return kafka.Message{}
+		return kafka.Message{}, nil
 	}
 
 	message, err := consumer.reader.ReadMessage(context.Background())
 
 	if err != nil {
 		consumer.logger.Info(logging.KafkaConnectionLogEntity{
-			Message: "Fetch message with error" + err.Error(),
+			Message: "Fetch message with error " + err.Error(),
 			Broker:  strings.Join(consumer.reader.Config().Brokers, ","),
 		})
 
-		return message
+		return message, err
 	}
 
 	consumer.logger.Info(logging.KafkaConnectionLogEntity{
@@ -58,10 +58,10 @@ func (consumer *Consumer) Fetch() kafka.Message {
 		Broker:  strings.Join(consumer.reader.Config().Brokers, ","),
 	})
 
-	return message
+	return message, nil
 }
 
-func (consumer *Consumer) Commit(messages []kafka.Message, consumerEntity kafkaconnection.Consumer) {
+func (consumer *Consumer) Commit(messages []kafka.Message, consumerEntity kafkaconnection.Consumer) error {
 	ctxTimeoutCommit, cancel := context.WithTimeout(context.Background(), consumerEntity.Timeout())
 	defer cancel()
 
@@ -71,7 +71,7 @@ func (consumer *Consumer) Commit(messages []kafka.Message, consumerEntity kafkac
 			Message: "Time for commit messages has expired",
 			Broker:  strings.Join(consumer.reader.Config().Brokers, ","),
 		})
-		return
+		return ctxTimeoutCommit.Err()
 	default:
 	}
 
@@ -80,7 +80,11 @@ func (consumer *Consumer) Commit(messages []kafka.Message, consumerEntity kafkac
 			Message: "Cannot commit message",
 			Broker:  strings.Join(consumer.reader.Config().Brokers, ","),
 		})
+
+		return err
 	}
+
+	return nil
 }
 
 func (consumer *Consumer) doCommit(messages []kafka.Message, context context.Context, retryCount int) error {
