@@ -6,18 +6,16 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	appcommand "transport/internal/application/commands/app"
 	kafkacommand "transport/internal/application/commands/kafka"
 	"transport/internal/application/observability/logging"
 	kafkaconnection "transport/internal/domain/connection"
-	"transport/internal/infrastructure/config"
 	"transport/internal/messaging/kafka"
 )
 
 func main() {
 	ctxGracefulShutdown, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	env, _ := config.NewEnvironment()
-
-	cfg, _ := config.NewLoader(config.NewValidator(), env).Load("./configs/transport.yaml")
+	cfg := appcommand.Init()
 	logger := logging.NewKafkaConnectionLogger(slog.LevelDebug)
 	adapter := kafka.NewAdapter(*cfg, logger)
 	adapter.ConnectAll(kafkaconnection.DefaultKafkaConn())

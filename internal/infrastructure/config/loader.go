@@ -8,6 +8,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+//todo interface
+
 type Loader struct {
 	validator   *Validator
 	environment *Environment

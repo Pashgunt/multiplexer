@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+//todo interface
+
 type Validator struct {
 }
 

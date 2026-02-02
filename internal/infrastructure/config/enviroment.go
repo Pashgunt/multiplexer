@@ -17,6 +17,8 @@ const (
 
 type TransportOption = map[string]interface{}
 
+//todo add interface
+
 type Environment struct {
 }
 
