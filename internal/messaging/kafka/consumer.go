@@ -12,10 +12,10 @@ import (
 type Consumer struct {
 	reader  *kafka.Reader
 	isReady bool
-	logger  logging.KafkaConnectionLogger
+	logger  logging.Logger
 }
 
-func NewConsumer(config Config, logger logging.KafkaConnectionLogger) *Consumer {
+func NewConsumer(config Config, logger logging.Logger) *Consumer {
 	return &Consumer{
 		reader: kafka.NewReader(kafka.ReaderConfig{
 			Brokers:     []string{config.Broker},

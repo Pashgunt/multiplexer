@@ -12,7 +12,7 @@ type Connection struct {
 	connection *kafka.Conn
 	config     Config
 	consumer   *Consumer
-	logger     logging.KafkaConnectionLogger
+	logger     logging.Logger
 }
 
 func (connection *Connection) SetConsumer(consumer *Consumer) {
@@ -31,7 +31,7 @@ func (connection *Connection) Close() error {
 	return connection.connection.Close()
 }
 
-func NewConnection(ctx context.Context, config Config, logger logging.KafkaConnectionLogger) (*Connection, error) {
+func NewConnection(ctx context.Context, config Config, logger logging.Logger) (*Connection, error) {
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()

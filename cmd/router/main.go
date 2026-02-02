@@ -15,8 +15,9 @@ import (
 
 func main() {
 	ctxGracefulShutdown, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	env, _ := config.NewEnvironment()
 
-	cfg, _ := config.NewLoader(config.NewValidator(), config.NewEnvironment()).Load("./configs/transport.yaml")
+	cfg, _ := config.NewLoader(config.NewValidator(), env).Load("./configs/transport.yaml")
 	logger := logging.NewKafkaConnectionLogger(slog.LevelDebug)
 	adapter := kafka.NewAdapter(*cfg, logger)
 	adapter.ConnectAll(kafkaconnection.DefaultKafkaConn())

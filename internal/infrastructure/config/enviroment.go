@@ -20,11 +20,15 @@ type TransportOption = map[string]interface{}
 type Environment struct {
 }
 
-func NewEnvironment() *Environment {
+func NewEnvironment() (*Environment, error) {
 	env := &Environment{}
-	env.Init()
+	err := env.Init()
 
-	return env
+	if err != nil {
+		return nil, err
+	}
+
+	return env, nil
 }
 
 func (env *Environment) Init() error {

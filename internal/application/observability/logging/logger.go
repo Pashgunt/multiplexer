@@ -6,21 +6,47 @@ import (
 	"transport/pkg/utils/backoff"
 )
 
+type Logger interface {
+	Info(entity interface{})
+	Warning(entity interface{})
+	Error(entity interface{})
+}
+
 type KafkaConnectionLogger struct {
 	logger *slog.Logger
 }
 
-func NewKafkaConnectionLogger(level slog.Level) KafkaConnectionLogger {
-	return KafkaConnectionLogger{
+func NewKafkaConnectionLogger(level slog.Level) Logger {
+	return &KafkaConnectionLogger{
 		logger: slog.
 			New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})).
 			WithGroup(backoff.GroupNameKafkaConnectionLogger),
 	}
 }
 
-func (logger *KafkaConnectionLogger) Info(entity KafkaConnectionLogEntity) {
+func (logger *KafkaConnectionLogger) Info(entity interface{}) {
+	kafkaConnectionLoggerEntity, _ := entity.(KafkaConnectionLogEntity)
+
 	logger.logger.Info(
-		entity.Message,
-		"broker", entity.Broker,
+		kafkaConnectionLoggerEntity.Message,
+		"broker", kafkaConnectionLoggerEntity.Broker,
+	)
+}
+
+func (logger *KafkaConnectionLogger) Warning(entity interface{}) {
+	kafkaConnectionLoggerEntity, _ := entity.(KafkaConnectionLogEntity)
+
+	logger.logger.Warn(
+		kafkaConnectionLoggerEntity.Message,
+		"broker", kafkaConnectionLoggerEntity.Broker,
+	)
+}
+
+func (logger *KafkaConnectionLogger) Error(entity interface{}) {
+	kafkaConnectionLoggerEntity, _ := entity.(KafkaConnectionLogEntity)
+
+	logger.logger.Error(
+		kafkaConnectionLoggerEntity.Message,
+		"broker", kafkaConnectionLoggerEntity.Broker,
 	)
 }

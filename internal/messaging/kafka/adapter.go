@@ -13,10 +13,10 @@ type Adapter struct {
 	connections []*Connection
 	configs     []Config
 	mutex       sync.RWMutex
-	logger      logging.KafkaConnectionLogger
+	logger      logging.Logger
 }
 
-func NewAdapter(appConfig types.Config, logger logging.KafkaConnectionLogger) *Adapter {
+func NewAdapter(appConfig types.Config, logger logging.Logger) *Adapter {
 	adapter := &Adapter{
 		configs: convert(appConfig),
 		mutex:   sync.RWMutex{},
