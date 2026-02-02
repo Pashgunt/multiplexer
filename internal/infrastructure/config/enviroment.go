@@ -17,7 +17,11 @@ const (
 
 type TransportOption = map[string]interface{}
 
-//todo add interface
+type EnvironmentInterface interface {
+	Init() error
+	Get(envName string) string
+	Replace(data map[string]interface{}) error
+}
 
 type Environment struct {
 }
@@ -41,7 +45,7 @@ func (env *Environment) Init() error {
 	return nil
 }
 
-func (env *Environment) replace(data map[string]interface{}) error {
+func (env *Environment) Replace(data map[string]interface{}) error {
 	topics, isset := data[KeyTopics]
 
 	if !isset {

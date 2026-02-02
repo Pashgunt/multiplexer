@@ -7,6 +7,7 @@ import (
 
 type AdapterInterface interface {
 	GetLogger(loggerType backoff.LoggerType) LoggerInterface
+	Init(loggerTypes []backoff.LoggerType)
 }
 
 type Adapter struct {
@@ -53,5 +54,6 @@ func (adapter *Adapter) Init(loggerTypes []backoff.LoggerType) {
 func NewAdapter() AdapterInterface {
 	return &Adapter{
 		factory: &defaultLoggerFactory{},
+		loggers: map[backoff.LoggerType]LoggerInterface{},
 	}
 }

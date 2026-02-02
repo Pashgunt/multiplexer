@@ -8,19 +8,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//todo interface
-
-type Loader struct {
-	validator   *Validator
-	environment *Environment
+type LoaderInterface interface {
+	Load(configPath string) (*types.Config, error)
 }
 
-func NewLoader(validator *Validator, environment *Environment) *Loader {
+type Loader struct {
+	validator   ValidatorTransportStructInterface
+	environment EnvironmentInterface
+}
+
+func NewLoader(validator ValidatorTransportStructInterface, environment EnvironmentInterface) LoaderInterface {
 	return &Loader{validator: validator, environment: environment}
 }
 
 func (loader *Loader) Load(configPath string) (*types.Config, error) {
-	if err := loader.validator.validateFileExists(configPath); err != nil {
+	if err := loader.validator.ValidateFileExists(configPath); err != nil {
 		return nil, err
 	}
 
@@ -44,7 +46,7 @@ func (loader *Loader) decodeAndReplaceEnv(data []byte) (*types.Config, error) {
 		return nil, err
 	}
 
-	if err := loader.environment.replace(dataForReplaceEnvironment); err != nil {
+	if err := loader.environment.Replace(dataForReplaceEnvironment); err != nil {
 		return nil, err
 	}
 

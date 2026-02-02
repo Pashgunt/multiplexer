@@ -6,7 +6,8 @@ import (
 	"time"
 	"transport/internal/application/observability/logging"
 	kafkaconnection "transport/internal/domain/connection"
-	"transport/internal/infrastructure/config/types"
+	appconfig "transport/internal/infrastructure/config/app"
+	"transport/pkg/utils/backoff"
 )
 
 type AdapterInterface interface {
@@ -19,6 +20,7 @@ type AdapterGetterInterface interface {
 	Connections() []ConnectionInterface
 }
 
+// Adapter todo add flag success connections
 type Adapter struct {
 	connections []ConnectionInterface
 	configs     []Config
@@ -26,11 +28,11 @@ type Adapter struct {
 	logger      logging.LoggerInterface
 }
 
-func NewAdapter(appConfig types.Config, logger logging.LoggerInterface) AdapterInterface {
+func NewAdapter(config appconfig.Config) AdapterInterface {
 	adapter := &Adapter{
-		configs: convert(appConfig),
+		configs: convert(config.Config),
 		mutex:   sync.RWMutex{},
-		logger:  logger,
+		logger:  config.Logger.GetLogger(backoff.KafkaLogger),
 	}
 	adapter.connections = make([]ConnectionInterface, 0, len(adapter.configs))
 

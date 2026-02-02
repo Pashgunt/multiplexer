@@ -5,16 +5,18 @@ import (
 	"os"
 )
 
-//todo interface
+type ValidatorTransportStructInterface interface {
+	ValidateFileExists(configPath string) error
+}
 
 type Validator struct {
 }
 
-func NewValidator() *Validator {
+func NewValidator() ValidatorTransportStructInterface {
 	return &Validator{}
 }
 
-func (validator *Validator) validateFileExists(configPath string) error {
+func (validator *Validator) ValidateFileExists(configPath string) error {
 	info, err := os.Stat(configPath)
 
 	if err != nil {
