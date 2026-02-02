@@ -9,13 +9,18 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
+type ConsumerInterface interface {
+	Fetch() (kafka.Message, error)
+	Commit(messages []kafka.Message, consumerEntity kafkaconnection.Consumer) error
+}
+
 type Consumer struct {
 	reader  *kafka.Reader
 	isReady bool
-	logger  logging.Logger
+	logger  logging.LoggerInterface
 }
 
-func NewConsumer(config Config, logger logging.Logger) *Consumer {
+func NewConsumer(config Config, logger logging.LoggerInterface) ConsumerInterface {
 	return &Consumer{
 		reader: kafka.NewReader(kafka.ReaderConfig{
 			Brokers:     []string{config.Broker},

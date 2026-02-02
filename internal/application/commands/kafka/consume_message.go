@@ -7,7 +7,7 @@ import (
 	kafkago "github.com/segmentio/kafka-go"
 )
 
-func ConsumeMessage(consumer *kafka.Consumer) {
+func ConsumeMessage(consumer kafka.ConsumerInterface) {
 	for {
 		message, err := consumer.Fetch()
 

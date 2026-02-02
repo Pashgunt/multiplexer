@@ -6,7 +6,7 @@ import (
 	"transport/pkg/utils/backoff"
 )
 
-type Logger interface {
+type LoggerInterface interface {
 	Info(entity interface{})
 	Warning(entity interface{})
 	Error(entity interface{})
@@ -16,7 +16,7 @@ type KafkaConnectionLogger struct {
 	logger *slog.Logger
 }
 
-func NewKafkaConnectionLogger(level slog.Level) Logger {
+func NewKafkaConnectionLogger(level slog.Level) LoggerInterface {
 	return &KafkaConnectionLogger{
 		logger: slog.
 			New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})).

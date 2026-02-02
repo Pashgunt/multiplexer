@@ -5,13 +5,13 @@ import (
 	"transport/internal/messaging/kafka"
 )
 
-func StartProcess(connections []*kafka.Connection, logger logging.Logger) {
+func StartProcess(connections []kafka.ConnectionInterface, logger logging.LoggerInterface) {
 	for _, connection := range connections {
 		go doProcessForConsumer(connection, logger)
 	}
 }
 
-func doProcessForConsumer(connection *kafka.Connection, logger logging.Logger) {
+func doProcessForConsumer(connection kafka.ConnectionInterface, logger logging.LoggerInterface) {
 	connection.SetConsumer(StartConsumers(connection.Config(), logger))
 	ConsumeMessage(connection.Consumer())
 }

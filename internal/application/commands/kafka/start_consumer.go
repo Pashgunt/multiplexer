@@ -5,6 +5,6 @@ import (
 	"transport/internal/messaging/kafka"
 )
 
-func StartConsumers(config kafka.Config, logger logging.Logger) *kafka.Consumer {
+func StartConsumers(config kafka.Config, logger logging.LoggerInterface) kafka.ConsumerInterface {
 	return kafka.NewConsumer(config, logger)
 }

@@ -9,29 +9,39 @@ import (
 	"transport/internal/infrastructure/config/types"
 )
 
-type Adapter struct {
-	connections []*Connection
-	configs     []Config
-	mutex       sync.RWMutex
-	logger      logging.Logger
+type AdapterInterface interface {
+	AdapterGetterInterface
+	ConnectAll(kafka kafkaconnection.Kafka)
+	CloseAll()
 }
 
-func NewAdapter(appConfig types.Config, logger logging.Logger) *Adapter {
+type AdapterGetterInterface interface {
+	Connections() []ConnectionInterface
+}
+
+type Adapter struct {
+	connections []ConnectionInterface
+	configs     []Config
+	mutex       sync.RWMutex
+	logger      logging.LoggerInterface
+}
+
+func NewAdapter(appConfig types.Config, logger logging.LoggerInterface) AdapterInterface {
 	adapter := &Adapter{
 		configs: convert(appConfig),
 		mutex:   sync.RWMutex{},
 		logger:  logger,
 	}
-	adapter.connections = make([]*Connection, 0, len(adapter.configs))
+	adapter.connections = make([]ConnectionInterface, 0, len(adapter.configs))
 
 	return adapter
 }
 
-func (adapter *Adapter) Connections() []*Connection {
+func (adapter *Adapter) Connections() []ConnectionInterface {
 	adapter.mutex.RLock()
 	defer adapter.mutex.RUnlock()
 
-	copyConnections := make([]*Connection, len(adapter.configs))
+	copyConnections := make([]ConnectionInterface, len(adapter.configs))
 	copy(copyConnections, adapter.connections)
 
 	return copyConnections
@@ -39,7 +49,7 @@ func (adapter *Adapter) Connections() []*Connection {
 
 func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 	configsChan := make(chan Config, len(adapter.configs))
-	resultsChan := make(chan *Connection, len(adapter.configs))
+	resultsChan := make(chan ConnectionInterface, len(adapter.configs))
 
 	var wg sync.WaitGroup
 
@@ -82,7 +92,7 @@ func (adapter *Adapter) CloseAll() {
 		return
 	}
 
-	errorCloseConnections := make([]*Connection, 0, len(adapter.connections))
+	errorCloseConnections := make([]ConnectionInterface, 0, len(adapter.connections))
 
 	for _, connection := range adapter.connections {
 		if err := connection.Close(); err != nil {
@@ -109,7 +119,7 @@ func (adapter *Adapter) doConnect(
 	timeout time.Duration,
 	retryTimeout time.Duration,
 	retryCount int,
-) (*Connection, error) {
+) (ConnectionInterface, error) {
 	connCtx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -136,7 +146,7 @@ func (adapter *Adapter) fillConfigs(configsChan chan<- Config) {
 	}
 }
 
-func (adapter *Adapter) fillConnections(resultsChan <-chan *Connection) {
+func (adapter *Adapter) fillConnections(resultsChan <-chan ConnectionInterface) {
 	for connection := range resultsChan {
 		adapter.mutex.Lock()
 		adapter.connections = append(adapter.connections, connection)
