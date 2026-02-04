@@ -21,10 +21,9 @@ func main() {
 
 	<-ctxGracefulShutdown.Done()
 	ctxShutdown, stopCtxShutdown := context.WithTimeout(context.Background(), 1*time.Second)
-	adapter.CloseAll()
+	adapter.CloseAll(ctxShutdown)
 	defer func() {
 		stop()
 		stopCtxShutdown()
 	}()
-	<-ctxShutdown.Done()
 }

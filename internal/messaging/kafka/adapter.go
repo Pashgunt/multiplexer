@@ -13,7 +13,7 @@ import (
 type AdapterInterface interface {
 	AdapterGetterInterface
 	ConnectAll(kafka kafkaconnection.Kafka)
-	CloseAll()
+	CloseAll(ctx context.Context)
 }
 
 type AdapterGetterInterface interface {
@@ -89,14 +89,25 @@ func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 	adapter.fillConnections(resultsChan)
 }
 
-func (adapter *Adapter) CloseAll() {
+func (adapter *Adapter) CloseAll(ctx context.Context) {
 	if len(adapter.connections) == 0 {
 		return
 	}
 
 	errorCloseConnections := make([]ConnectionInterface, 0, len(adapter.connections))
 
-	for _, connection := range adapter.connections {
+	for index, connection := range adapter.connections {
+		select {
+		case <-ctx.Done():
+			adapter.logger.Info(logging.KafkaConnectionLogEntity{
+				Message: "Context canceled during connection closing",
+			})
+			errorCloseConnections = append(errorCloseConnections, adapter.connections[index:]...)
+			adapter.connections = errorCloseConnections
+			return
+		default:
+		}
+
 		if err := connection.Close(); err != nil {
 			adapter.logger.Info(logging.KafkaConnectionLogEntity{
 				Message: "Error closing Kafka connection: " + err.Error(),
@@ -112,7 +123,7 @@ func (adapter *Adapter) CloseAll() {
 	adapter.connections = errorCloseConnections
 
 	if len(adapter.connections) > 0 {
-		adapter.CloseAll()
+		adapter.CloseAll(ctx)
 	}
 }
 

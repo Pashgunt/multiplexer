@@ -47,13 +47,7 @@ func (connection *Connection) Close() error {
 }
 
 func NewConnection(ctx context.Context, config Config, logger logging.LoggerInterface) (ConnectionInterface, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
-	}
-
-	connection, err := kafka.Dial("tcp", config.Broker)
+	connection, err := kafka.DialContext(ctx, "tcp", config.Broker)
 
 	if err != nil {
 		return nil, err

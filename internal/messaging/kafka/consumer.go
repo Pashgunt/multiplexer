@@ -70,16 +70,6 @@ func (consumer *Consumer) Commit(messages []kafka.Message, consumerEntity kafkac
 	ctxTimeoutCommit, cancel := context.WithTimeout(context.Background(), consumerEntity.Timeout())
 	defer cancel()
 
-	select {
-	case <-ctxTimeoutCommit.Done():
-		consumer.logger.Info(logging.KafkaConnectionLogEntity{
-			Message: "Time for commit messages has expired",
-			Broker:  strings.Join(consumer.reader.Config().Brokers, ","),
-		})
-		return ctxTimeoutCommit.Err()
-	default:
-	}
-
 	if err := consumer.doCommit(messages, ctxTimeoutCommit, consumerEntity.RetryCountCommit()); err != nil {
 		consumer.logger.Info(logging.KafkaConnectionLogEntity{
 			Message: "Cannot commit message",
