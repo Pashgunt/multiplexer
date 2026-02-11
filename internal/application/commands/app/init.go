@@ -5,7 +5,12 @@ import (
 	"transport/internal/infrastructure/config"
 	appconfig "transport/internal/infrastructure/config/app"
 	"transport/internal/infrastructure/config/types"
+	"transport/internal/infrastructure/db"
 	"transport/pkg/utils/backoff"
+)
+
+const (
+	envNamePgDatabaseUrl = "PG_DATABASE_URL"
 )
 
 type KernelInterface interface {
@@ -33,8 +38,19 @@ func (kernel *Kernel) Init() KernelInterface {
 	kernel.config.Environment = kernel.initEnvironment()
 	kernel.config.Logger = kernel.initLogger()
 	kernel.config.Config = kernel.initTransportConfig()
+	kernel.config.PgSql = kernel.initDatabase()
 
 	return kernel
+}
+
+func (kernel *Kernel) initDatabase() db.DBInterface {
+	pgsql := db.NewPostgresSQLDB(kernel.config.Environment.Get(envNamePgDatabaseUrl))
+
+	if err := pgsql.Open(); err != nil {
+		panic(err)
+	}
+
+	return pgsql
 }
 
 func (kernel *Kernel) initEnvironment() config.EnvironmentInterface {

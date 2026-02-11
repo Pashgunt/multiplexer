@@ -27,7 +27,7 @@ func NewKafkaConnectionLogger(level slog.Level) LoggerInterface {
 func (logger *KafkaConnectionLogger) Warning(object interface{}) {
 	kafkaConnectionLogEntity := object.(KafkaConnectionLogEntity)
 
-	logger.logger.Info(kafkaConnectionLogEntity.Message, "broker", kafkaConnectionLogEntity.Broker)
+	logger.logger.Warn(kafkaConnectionLogEntity.Message, "broker", kafkaConnectionLogEntity.Broker)
 }
 
 func (logger *KafkaConnectionLogger) Info(object interface{}) {
@@ -52,12 +52,16 @@ func NewAppLogger(level slog.Level) LoggerInterface {
 	}
 }
 
-func (logger *AppLogger) Warning(object interface{}) { //todo
-	logger.logger.Info("")
+func (logger *AppLogger) Warning(object interface{}) {
+	appLogEntity := object.(AppLogEntity)
+
+	logger.logger.Warn(appLogEntity.Message)
 }
 
-func (logger *AppLogger) Info(object interface{}) { //todo
-	logger.logger.Info("")
+func (logger *AppLogger) Info(object interface{}) {
+	appLogEntity := object.(AppLogEntity)
+
+	logger.logger.Info(appLogEntity.Message)
 }
 
 func (logger *AppLogger) Error(error error) {

@@ -90,6 +90,30 @@ services:
     networks:
       - message-network
 
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-local
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST_AUTH_METHOD=${POSTGRES_HOST_AUTH_METHOD:-md5}
+      - TZ=${POSTGRES_TZ:-UTC}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - message-network
+    restart: unless-stopped
+
 networks:
   message-network:
     driver: bridge
@@ -100,3 +124,4 @@ volumes:
   zookeeper_log:
   kafka_data:
   redis_data:
+  postgres_data:
