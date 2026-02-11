@@ -52,11 +52,11 @@ func NewAppLogger(level slog.Level) LoggerInterface {
 	}
 }
 
-func (logger *AppLogger) Warning(object interface{}) {
+func (logger *AppLogger) Warning(object interface{}) { //todo
 	logger.logger.Info("")
 }
 
-func (logger *AppLogger) Info(object interface{}) {
+func (logger *AppLogger) Info(object interface{}) { //todo
 	logger.logger.Info("")
 }
 
