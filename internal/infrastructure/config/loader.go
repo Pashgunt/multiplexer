@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"transport/internal/application/observability/logging"
 	"transport/internal/infrastructure/config/types"
 	"transport/internal/infrastructure/pool"
 
@@ -15,14 +16,17 @@ type LoaderInterface interface {
 type Loader struct {
 	validator   ValidatorTransportStructInterface
 	environment EnvironmentInterface
+	logger      logging.LoggerInterface
 }
 
-func NewLoader(validator ValidatorTransportStructInterface, environment EnvironmentInterface) LoaderInterface {
-	return &Loader{validator: validator, environment: environment}
+func NewLoader(validator ValidatorTransportStructInterface, environment EnvironmentInterface, logger logging.LoggerInterface) LoaderInterface {
+	return &Loader{validator: validator, environment: environment, logger: logger}
 }
 
 func (loader *Loader) Load(configPath string) (*types.Config, error) {
 	if err := loader.validator.ValidateFileExists(configPath); err != nil {
+		loader.logger.Error(err)
+
 		return nil, err
 	}
 
@@ -47,6 +51,8 @@ func (loader *Loader) decodeAndReplaceEnv(data []byte) (*types.Config, error) {
 	}
 
 	if err := loader.environment.Replace(dataForReplaceEnvironment); err != nil {
+		loader.logger.Error(err)
+
 		return nil, err
 	}
 

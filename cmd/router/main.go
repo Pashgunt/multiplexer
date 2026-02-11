@@ -17,7 +17,9 @@ func main() {
 	adapter := kafka.NewAdapter(app)
 	adapter.ConnectAll(kafkaconnection.DefaultKafkaConn())
 
-	kafkacommand.StartProcess(adapter.Connections(), app)
+	if adapter.HasConnection() {
+		kafkacommand.StartProcess(adapter.Connections(), app)
+	}
 
 	<-ctxGracefulShutdown.Done()
 	ctxShutdown, stopCtxShutdown := context.WithTimeout(context.Background(), 1*time.Second)

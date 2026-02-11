@@ -18,21 +18,31 @@ type AdapterInterface interface {
 
 type AdapterGetterInterface interface {
 	Connections() []ConnectionInterface
+	HasConnection() bool
 }
 
-// Adapter todo add flag success connections
 type Adapter struct {
-	connections []ConnectionInterface
-	configs     []Config
-	mutex       sync.RWMutex
-	logger      logging.LoggerInterface
+	connections   []ConnectionInterface
+	configs       []Config
+	mutex         sync.RWMutex
+	logger        logging.LoggerInterface
+	hasConnection bool
+}
+
+func (adapter *Adapter) HasConnection() bool {
+	return adapter.hasConnection
+}
+
+func (adapter *Adapter) setHasConnection(hasConnection bool) {
+	adapter.hasConnection = hasConnection
 }
 
 func NewAdapter(config appconfig.Config) AdapterInterface {
 	adapter := &Adapter{
-		configs: convert(config.Config),
-		mutex:   sync.RWMutex{},
-		logger:  config.Logger.GetLogger(backoff.KafkaLogger),
+		configs:       convert(config.Config),
+		mutex:         sync.RWMutex{},
+		logger:        config.Logger.GetLogger(backoff.KafkaLogger),
+		hasConnection: false,
 	}
 	adapter.connections = make([]ConnectionInterface, 0, len(adapter.configs))
 
@@ -54,10 +64,9 @@ func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 	resultsChan := make(chan ConnectionInterface, len(adapter.configs))
 
 	var wg sync.WaitGroup
+	wg.Add(kafka.WorkerCount())
 
 	for workerIndex := 0; workerIndex < kafka.WorkerCount(); workerIndex++ {
-		wg.Add(1)
-
 		go func() {
 			defer wg.Done()
 
@@ -65,18 +74,17 @@ func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 				connection, err := adapter.doConnect(config, kafka.Timeout(), kafka.RetryTimeout(), kafka.RetryCount())
 
 				if err != nil {
-					adapter.logger.Info(logging.KafkaConnectionLogEntity{
-						Message: "Failed to connect to Kafka. " + err.Error(),
-						Broker:  config.Broker,
-					})
+					adapter.logger.Error(err)
+
 					continue
 				}
 
-				adapter.logger.Info(logging.KafkaConnectionLogEntity{
-					Message: "Successfully connected to Kafka.",
-					Broker:  config.Broker,
-				})
+				adapter.logger.Info(logging.NewKafkaConnectionLogEntity("Successfully connected to Kafka.", config.Broker))
 				resultsChan <- connection
+
+				if adapter.hasConnection == false {
+					adapter.setHasConnection(true)
+				}
 			}
 		}()
 	}
@@ -91,6 +99,8 @@ func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 
 func (adapter *Adapter) CloseAll(ctx context.Context) {
 	if len(adapter.connections) == 0 {
+		adapter.setHasConnection(false)
+
 		return
 	}
 
@@ -99,9 +109,7 @@ func (adapter *Adapter) CloseAll(ctx context.Context) {
 	for index, connection := range adapter.connections {
 		select {
 		case <-ctx.Done():
-			adapter.logger.Info(logging.KafkaConnectionLogEntity{
-				Message: "Context canceled during connection closing",
-			})
+			adapter.logger.Error(ctx.Err())
 			errorCloseConnections = append(errorCloseConnections, adapter.connections[index:]...)
 			adapter.connections = errorCloseConnections
 			return
@@ -109,15 +117,9 @@ func (adapter *Adapter) CloseAll(ctx context.Context) {
 		}
 
 		if err := connection.Close(); err != nil {
-			adapter.logger.Info(logging.KafkaConnectionLogEntity{
-				Message: "Error closing Kafka connection: " + err.Error(),
-			})
+			adapter.logger.Warning(err)
 			errorCloseConnections = append(errorCloseConnections, connection)
 		}
-
-		adapter.logger.Info(logging.KafkaConnectionLogEntity{
-			Message: "Successfully closed Kafka connections.",
-		})
 	}
 
 	adapter.connections = errorCloseConnections
@@ -125,6 +127,8 @@ func (adapter *Adapter) CloseAll(ctx context.Context) {
 	if len(adapter.connections) > 0 {
 		adapter.CloseAll(ctx)
 	}
+
+	adapter.logger.Info(logging.NewKafkaConnectionLogEntity("Successfully closed Kafka connections.", ""))
 }
 
 func (adapter *Adapter) doConnect(
@@ -139,10 +143,7 @@ func (adapter *Adapter) doConnect(
 	connection, err := NewConnection(connCtx, config, adapter.logger)
 
 	if err != nil && retryCount > 0 {
-		adapter.logger.Info(logging.KafkaConnectionLogEntity{
-			Message: "Failed to connect to Kafka. Retrying... " + err.Error(),
-			Broker:  config.Broker,
-		})
+		adapter.logger.Warning(logging.NewKafkaConnectionLogEntity("Retry connect to kafka", config.Broker))
 
 		select {
 		case <-time.After(retryTimeout):
@@ -150,7 +151,11 @@ func (adapter *Adapter) doConnect(
 		}
 	}
 
-	return connection, err
+	if err != nil {
+		return connection, logging.NewKafkaConnectionError(config.Broker, "Cant connect to Kafka")
+	}
+
+	return connection, nil
 }
 
 func (adapter *Adapter) fillConfigs(configsChan chan<- Config) {

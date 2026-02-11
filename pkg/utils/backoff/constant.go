@@ -2,6 +2,7 @@ package backoff
 
 const (
 	GroupNameKafkaConnectionLogger = "kafka.connection"
+	GroupNameAppLogger             = "app"
 )
 
 const (

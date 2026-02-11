@@ -7,9 +7,9 @@ import (
 )
 
 type LoggerInterface interface {
-	Info(entity interface{})
-	Warning(entity interface{})
-	Error(entity interface{})
+	Info(interface{})
+	Warning(interface{})
+	Error(error)
 }
 
 type KafkaConnectionLogger struct {
@@ -24,29 +24,42 @@ func NewKafkaConnectionLogger(level slog.Level) LoggerInterface {
 	}
 }
 
-func (logger *KafkaConnectionLogger) Info(entity interface{}) {
-	kafkaConnectionLoggerEntity, _ := entity.(KafkaConnectionLogEntity)
+func (logger *KafkaConnectionLogger) Warning(object interface{}) {
+	kafkaConnectionLogEntity := object.(KafkaConnectionLogEntity)
 
-	logger.logger.Info(
-		kafkaConnectionLoggerEntity.Message,
-		"broker", kafkaConnectionLoggerEntity.Broker,
-	)
+	logger.logger.Info(kafkaConnectionLogEntity.Message, "broker", kafkaConnectionLogEntity.Broker)
 }
 
-func (logger *KafkaConnectionLogger) Warning(entity interface{}) {
-	kafkaConnectionLoggerEntity, _ := entity.(KafkaConnectionLogEntity)
+func (logger *KafkaConnectionLogger) Info(object interface{}) {
+	kafkaConnectionLogEntity := object.(KafkaConnectionLogEntity)
 
-	logger.logger.Warn(
-		kafkaConnectionLoggerEntity.Message,
-		"broker", kafkaConnectionLoggerEntity.Broker,
-	)
+	logger.logger.Info(kafkaConnectionLogEntity.Message, "broker", kafkaConnectionLogEntity.Broker)
 }
 
-func (logger *KafkaConnectionLogger) Error(entity interface{}) {
-	kafkaConnectionLoggerEntity, _ := entity.(KafkaConnectionLogEntity)
+func (logger *KafkaConnectionLogger) Error(error error) {
+	logger.logger.Error(error.Error())
+}
 
-	logger.logger.Error(
-		kafkaConnectionLoggerEntity.Message,
-		"broker", kafkaConnectionLoggerEntity.Broker,
-	)
+type AppLogger struct {
+	logger *slog.Logger
+}
+
+func NewAppLogger(level slog.Level) LoggerInterface {
+	return &AppLogger{
+		logger: slog.
+			New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})).
+			WithGroup(backoff.GroupNameAppLogger),
+	}
+}
+
+func (logger *AppLogger) Warning(object interface{}) {
+	logger.logger.Info("")
+}
+
+func (logger *AppLogger) Info(object interface{}) {
+	logger.logger.Info("")
+}
+
+func (logger *AppLogger) Error(error error) {
+	logger.logger.Error(error.Error())
 }

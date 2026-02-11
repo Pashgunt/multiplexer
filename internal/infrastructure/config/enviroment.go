@@ -1,9 +1,9 @@
 package config
 
 import (
-	"errors"
 	"os"
 	"regexp"
+	"transport/internal/application/observability/logging"
 
 	"github.com/joho/godotenv"
 )
@@ -26,20 +26,13 @@ type EnvironmentInterface interface {
 type Environment struct {
 }
 
-func NewEnvironment() (*Environment, error) {
-	env := &Environment{}
-	err := env.Init()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return env, nil
+func NewEnvironment() *Environment {
+	return &Environment{}
 }
 
 func (env *Environment) Init() error {
 	if err := godotenv.Load(Filenames); err != nil {
-		return errors.New("error loading .env file")
+		return logging.NewAppError("Error loading .env file.")
 	}
 
 	return nil
@@ -49,7 +42,7 @@ func (env *Environment) Replace(data map[string]interface{}) error {
 	topics, isset := data[KeyTopics]
 
 	if !isset {
-		return errors.New("topics not found in data")
+		return logging.NewAppError("Topics not found in data.")
 	}
 
 	for _, value := range topics.(TransportOption) {

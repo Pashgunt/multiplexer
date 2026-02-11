@@ -1,8 +1,8 @@
 package config
 
 import (
-	"errors"
 	"os"
+	"transport/internal/application/observability/logging"
 )
 
 type ValidatorTransportStructInterface interface {
@@ -24,11 +24,11 @@ func (validator *Validator) ValidateFileExists(configPath string) error {
 	}
 
 	if info.IsDir() {
-		return errors.New("config path is a directory, not a file")
+		return logging.NewAppError("Config path is a directory, not a file.")
 	}
 
 	if info.Size() == 0 {
-		return errors.New("config file is empty")
+		return logging.NewAppError("Config file is empty.")
 	}
 
 	return nil

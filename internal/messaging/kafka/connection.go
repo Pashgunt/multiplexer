@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"errors"
 	"transport/internal/application/observability/logging"
 
 	"github.com/segmentio/kafka-go"
@@ -50,17 +51,11 @@ func NewConnection(ctx context.Context, config Config, logger logging.LoggerInte
 	connection, err := kafka.DialContext(ctx, "tcp", config.Broker)
 
 	if err != nil {
-		return nil, err
-	}
-
-	if _, err = connection.Brokers(); err != nil {
-		err = connection.Close()
-
-		if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
 			return nil, err
 		}
 
-		return nil, err
+		return nil, logging.NewKafkaConnectionError(config.Broker, err.Error())
 	}
 
 	return &Connection{

@@ -38,9 +38,9 @@ func (kernel *Kernel) Init() KernelInterface {
 }
 
 func (kernel *Kernel) initEnvironment() config.EnvironmentInterface {
-	env, err := config.NewEnvironment()
+	env := config.NewEnvironment()
 
-	if err != nil {
+	if err := env.Init(); err != nil {
 		panic(err)
 	}
 
@@ -48,7 +48,12 @@ func (kernel *Kernel) initEnvironment() config.EnvironmentInterface {
 }
 
 func (kernel *Kernel) initTransportConfig() types.Config {
-	cfg, err := config.NewLoader(config.NewValidator(), kernel.config.Environment).Load(backoff.ConfigPath)
+	cfg, err := config.NewLoader(
+		config.NewValidator(),
+		kernel.config.Environment,
+		kernel.config.Logger.GetLogger(backoff.AppLogger),
+	).
+		Load(backoff.ConfigPath)
 
 	if err != nil {
 		panic(err)
