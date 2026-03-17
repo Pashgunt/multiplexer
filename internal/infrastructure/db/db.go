@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 
+	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
 )
 
@@ -30,7 +31,6 @@ func (p *PostgresSQLDB) Db() *sql.DB {
 }
 
 func (p *PostgresSQLDB) Open() error {
-	//postgres
 	db, err := sql.Open(string(goose.DialectPostgres), p.databaseSourceName)
 
 	if err != nil {
