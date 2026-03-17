@@ -5,6 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"transport/api/src/public"
 	appcommand "transport/internal/application/commands/app"
 	kafkacommand "transport/internal/application/commands/kafka"
 	kafkaconnection "transport/internal/domain/connection"
@@ -21,11 +22,18 @@ func main() {
 		stop()
 	}
 
-	kafkacommand.StartProcess(adapter.Connections(), app)
+	go kafkacommand.StartProcess(adapter.Connections(), app)
+
+	httpServer := public.NewHttpServer(app)
+
+	go httpServer.Start()
 
 	<-ctxGracefulShutdown.Done()
-	ctxShutdown, stopCtxShutdown := context.WithTimeout(context.Background(), 1*time.Second)
+	ctxShutdown, stopCtxShutdown := context.WithTimeout(context.Background(), 10*time.Second)
 	adapter.CloseAll(ctxShutdown)
+
+	httpServer.Shutdown(ctxShutdown)
+
 	defer func() {
 		stop()
 		stopCtxShutdown()

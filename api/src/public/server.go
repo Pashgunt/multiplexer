@@ -1,0 +1,42 @@
+package public
+
+import (
+	"context"
+	"net/http"
+	"transport/api/src/factory"
+	apihandler "transport/api/src/handler"
+	"transport/api/src/repository"
+	apiservice "transport/api/src/service"
+	appconfig "transport/internal/infrastructure/config/app"
+)
+
+type HttpServer struct {
+	server *http.Server
+}
+
+func NewHttpServer(config appconfig.Config) *HttpServer {
+	router := http.NewServeMux()
+
+	service := apiservice.NewTargetServiceService(
+		repository.NewTargetServiceRepository(config.PgSql),
+		factory.NewTargetServiceFactory(),
+	)
+	handler := apihandler.NewTargetServiceHandler(service)
+
+	router.HandleFunc("/api/v1/target-services", handler.Create)
+
+	return &HttpServer{
+		server: &http.Server{
+			Addr:    config.Environment.Get("PORT"),
+			Handler: router,
+		},
+	}
+}
+
+func (s HttpServer) Start() error {
+	return s.server.ListenAndServe()
+}
+
+func (s HttpServer) Shutdown(ctx context.Context) error {
+	return s.server.Shutdown(ctx)
+}
