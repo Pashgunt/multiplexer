@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"transport/api/src/factory"
 	apihandler "transport/api/src/handler"
+	"transport/api/src/middleware"
 	"transport/api/src/repository"
 	apiservice "transport/api/src/service"
 	appconfig "transport/internal/infrastructure/config/app"
@@ -23,7 +24,10 @@ func NewHttpServer(config appconfig.Config) *HttpServer {
 	)
 	handler := apihandler.NewTargetServiceHandler(service)
 
-	router.HandleFunc("/api/v1/target-services", handler.Create)
+	router.HandleFunc("/api/v1/target-services", middleware.Chain(
+		handler.Create,
+		middleware.AllowHttpMethodMiddleware(http.MethodPost),
+	))
 
 	return &HttpServer{
 		server: &http.Server{
