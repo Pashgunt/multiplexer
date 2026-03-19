@@ -28,6 +28,10 @@ func sendCreated(w http.ResponseWriter, id string) {
 	})
 }
 
+func sendDeleted(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func sendError(w http.ResponseWriter, status int, errMsg string) {
 	sendJSON(w, status, dto.ApiResponse{
 		Success: false,

@@ -3,21 +3,30 @@ package domain_service
 import (
 	"context"
 	apierror "transport/api/src/error"
+	"transport/api/src/factory"
 	"transport/api/src/model"
 	"transport/api/src/repository"
+
+	"github.com/google/uuid"
 )
 
 type ITargetDomainService interface {
 	CanCreate(ctx context.Context, targetService *model.TargetService) error
+	CanDelete(ctx context.Context, uuid uuid.UUID) (*model.TargetService, error)
 }
 
 type TargetDomainService struct {
 	repository repository.ITargetServiceRepository
+	factory    factory.ITargetServiceFactory
 }
 
-func NewTargetDomainService(repository repository.ITargetServiceRepository) ITargetDomainService {
+func NewTargetDomainService(
+	repository repository.ITargetServiceRepository,
+	factory factory.ITargetServiceFactory,
+) ITargetDomainService {
 	return &TargetDomainService{
 		repository: repository,
+		factory:    factory,
 	}
 }
 
@@ -33,4 +42,18 @@ func (s *TargetDomainService) CanCreate(ctx context.Context, targetService *mode
 	}
 
 	return nil
+}
+
+func (s *TargetDomainService) CanDelete(ctx context.Context, uuid uuid.UUID) (*model.TargetService, error) {
+	targetServiceDto, err := s.repository.FindBy(ctx, uuid)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if targetServiceDto == nil {
+		return nil, apierror.NewNotFoundError("target_service")
+	}
+
+	return s.factory.CreateFromDb(*targetServiceDto)
 }

@@ -10,6 +10,7 @@ import (
 
 type ITargetServiceService interface {
 	Create(ctx context.Context, command command.CreateTargetServiceCommand) (string, error)
+	Delete(ctx context.Context, command command.DeleteTargetServiceCommand) error
 }
 
 type TargetServiceService struct {
@@ -25,7 +26,7 @@ func NewTargetServiceService(
 	return &TargetServiceService{
 		repository:    repository,
 		factory:       factory,
-		domainService: domain_service.NewTargetDomainService(repository),
+		domainService: domain_service.NewTargetDomainService(repository, factory),
 	}
 }
 
@@ -41,4 +42,14 @@ func (s TargetServiceService) Create(ctx context.Context, command command.Create
 	}
 
 	return entity.Id().String(), s.repository.Save(ctx, entity)
+}
+
+func (s TargetServiceService) Delete(ctx context.Context, command command.DeleteTargetServiceCommand) error {
+	targetService, err := s.domainService.CanDelete(ctx, command.Id)
+
+	if err != nil {
+		return err
+	}
+
+	return s.repository.Delete(ctx, targetService.Id())
 }

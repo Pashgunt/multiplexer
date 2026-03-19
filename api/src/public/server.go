@@ -24,9 +24,16 @@ func NewHttpServer(config appconfig.Config) *HttpServer {
 	)
 	handler := apihandler.NewTargetServiceHandler(service)
 
+	//todo add log middleware
 	router.HandleFunc("/api/v1/target-services", middleware.Chain(
 		handler.Create,
 		middleware.AllowHttpMethodMiddleware(http.MethodPost),
+	))
+
+	router.HandleFunc("/api/v1/target-services/{uuid}", middleware.Chain(
+		handler.Delete,
+		middleware.AllowHttpMethodMiddleware(http.MethodDelete),
+		middleware.UUIDPathParamMiddleware("uuid"), //todo add const path params
 	))
 
 	return &HttpServer{
