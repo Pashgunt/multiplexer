@@ -10,32 +10,41 @@ const (
 	serviceBaseUrlMinLength = 8
 )
 
+type ValidateLevel int
+
+const (
+	BaseUrlValidateLevelStrict ValidateLevel = 1
+	BaseUrlValidateLevelNone   ValidateLevel = 0
+)
+
 type BaseUrl struct {
 	value                string
 	maxLength, minLength int
 }
 
-func NewBaseUrl(baseUrl string) (BaseUrl, error) {
+func NewBaseUrl(baseUrl string, validateLevel ValidateLevel) (BaseUrl, error) {
 	baseUrlObj := BaseUrl{
 		value:     baseUrl,
 		maxLength: serviceBaseUrlMaxLength,
 		minLength: serviceBaseUrlMinLength,
 	}
 
-	isValid, err := baseUrlObj.isValidPattern()
+	if validateLevel == BaseUrlValidateLevelStrict {
+		isValid, err := baseUrlObj.isValidPattern()
 
-	if err != nil {
-		return BaseUrl{}, err
-	}
+		if err != nil {
+			return BaseUrl{}, err
+		}
 
-	if !isValid {
-		return BaseUrl{}, apierror.NewServiceBaseUrlError("invalid pattern base url")
-	}
+		if !isValid {
+			return BaseUrl{}, apierror.NewServiceBaseUrlError("invalid pattern base url")
+		}
 
-	isValid = baseUrlObj.isValidLength()
+		isValid = baseUrlObj.isValidLength()
 
-	if !isValid {
-		return BaseUrl{}, apierror.NewServiceBaseUrlError("invalid length base url")
+		if !isValid {
+			return BaseUrl{}, apierror.NewServiceBaseUrlError("invalid length base url")
+		}
 	}
 
 	return baseUrlObj, nil

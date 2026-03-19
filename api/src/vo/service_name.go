@@ -10,32 +10,39 @@ const (
 	serviceNameMinLength = 8
 )
 
+const (
+	ServiceNameValidateLevelStrict ValidateLevel = 1
+	ServiceNameValidateLevelNone   ValidateLevel = 0
+)
+
 type ServiceName struct {
 	value                string
 	maxLength, minLength int
 }
 
-func NewServiceName(serviceName string) (ServiceName, error) {
+func NewServiceName(serviceName string, validateLevel ValidateLevel) (ServiceName, error) {
 	serviceNameObj := ServiceName{
 		value:     serviceName,
 		maxLength: serviceNameMaxLength,
 		minLength: serviceNameMinLength,
 	}
 
-	isValid, err := serviceNameObj.isValidPattern()
+	if validateLevel == ServiceNameValidateLevelStrict {
+		isValid, err := serviceNameObj.isValidPattern()
 
-	if err != nil {
-		return ServiceName{}, err
-	}
+		if err != nil {
+			return ServiceName{}, err
+		}
 
-	if !isValid {
-		return ServiceName{}, apierror.NewServiceNameError("invalid pattern service name")
-	}
+		if !isValid {
+			return ServiceName{}, apierror.NewServiceNameError("invalid pattern service name")
+		}
 
-	isValid = serviceNameObj.isValidLength()
+		isValid = serviceNameObj.isValidLength()
 
-	if !isValid {
-		return ServiceName{}, apierror.NewServiceNameError("invalid length service name")
+		if !isValid {
+			return ServiceName{}, apierror.NewServiceNameError("invalid length service name")
+		}
 	}
 
 	return serviceNameObj, nil

@@ -13,8 +13,8 @@ type TargetService struct {
 	description string
 	baseUrl     vo.BaseUrl
 	isActive    bool
-	createdAt   time.Time
-	updatedAt   time.Time
+	createdAt   *time.Time
+	updatedAt   *time.Time
 }
 
 func (t *TargetService) Id() uuid.UUID {
@@ -57,19 +57,19 @@ func (t *TargetService) SetIsActive(isActive bool) {
 	t.isActive = isActive
 }
 
-func (t *TargetService) CreatedAt() time.Time {
+func (t *TargetService) CreatedAt() *time.Time {
 	return t.createdAt
 }
 
-func (t *TargetService) SetCreatedAt(createdAt time.Time) {
+func (t *TargetService) SetCreatedAt(createdAt *time.Time) {
 	t.createdAt = createdAt
 }
 
-func (t *TargetService) UpdatedAt() time.Time {
+func (t *TargetService) UpdatedAt() *time.Time {
 	return t.updatedAt
 }
 
-func (t *TargetService) SetUpdatedAt(updatedAt time.Time) {
+func (t *TargetService) SetUpdatedAt(updatedAt *time.Time) {
 	t.updatedAt = updatedAt
 }
 
@@ -79,8 +79,8 @@ func NewTargetService(
 	description string,
 	baseUrl vo.BaseUrl,
 	isActive bool,
-	createdAt time.Time,
-	updatedAt time.Time,
+	createdAt *time.Time,
+	updatedAt *time.Time,
 ) *TargetService {
 	return &TargetService{
 		id:          id,

@@ -2,12 +2,14 @@ package public
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"transport/api/src/factory"
 	apihandler "transport/api/src/handler"
 	"transport/api/src/middleware"
 	"transport/api/src/repository"
 	apiservice "transport/api/src/service"
+	apiutils "transport/api/src/utils"
 	appconfig "transport/internal/infrastructure/config/app"
 )
 
@@ -30,10 +32,10 @@ func NewHttpServer(config appconfig.Config) *HttpServer {
 		middleware.AllowHttpMethodMiddleware(http.MethodPost),
 	))
 
-	router.HandleFunc("/api/v1/target-services/{uuid}", middleware.Chain(
+	router.HandleFunc(fmt.Sprintf("/api/v1/target-services/{%s}", apiutils.Uuid), middleware.Chain(
 		handler.Delete,
 		middleware.AllowHttpMethodMiddleware(http.MethodDelete),
-		middleware.UUIDPathParamMiddleware("uuid"), //todo add const path params
+		middleware.UUIDPathParamMiddleware(apiutils.Uuid),
 	))
 
 	return &HttpServer{

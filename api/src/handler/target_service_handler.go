@@ -8,6 +8,7 @@ import (
 	"transport/api/src/command"
 	apidto "transport/api/src/dto"
 	"transport/api/src/service"
+	apiutils "transport/api/src/utils"
 
 	"github.com/google/uuid"
 )
@@ -45,7 +46,10 @@ func (h TargetServiceHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h TargetServiceHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	err := h.service.Delete(r.Context(), command.DeleteTargetServiceCommand{Id: uuid.MustParse(r.Context().Value("uuid").(string))})
+	err := h.service.Delete(
+		r.Context(),
+		command.DeleteTargetServiceCommand{Id: uuid.MustParse(r.Context().Value(apiutils.Uuid).(string))},
+	)
 
 	if err != nil {
 		sendError(w, http.StatusBadRequest, err.Error())

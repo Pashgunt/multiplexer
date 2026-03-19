@@ -23,17 +23,19 @@ func NewTargetServiceFactory() ITargetServiceFactory {
 }
 
 func (f TargetServiceFactory) Create(command command.CreateTargetServiceCommand) (*model.TargetService, error) {
-	serviceName, err := vo.NewServiceName(command.Dto.ServiceName)
+	serviceName, err := vo.NewServiceName(command.Dto.ServiceName, vo.ServiceNameValidateLevelStrict)
 
 	if err != nil {
 		return nil, err
 	}
 
-	baseUrl, err := vo.NewBaseUrl(command.Dto.BaseUrl)
+	baseUrl, err := vo.NewBaseUrl(command.Dto.BaseUrl, vo.BaseUrlValidateLevelStrict)
 
 	if err != nil {
 		return nil, err
 	}
+
+	date := time.Now()
 
 	return model.NewTargetService(
 		uuid.New(),
@@ -41,24 +43,25 @@ func (f TargetServiceFactory) Create(command command.CreateTargetServiceCommand)
 		command.Dto.Description,
 		baseUrl,
 		command.Dto.IsActive,
-		time.Now(),
-		time.Now(),
+		&date,
+		&date,
 	), nil
 }
 
-// todo add level validate for VO
 func (f TargetServiceFactory) CreateFromDb(dto apidtodb.TargetServiceDbDto) (*model.TargetService, error) {
-	serviceName, err := vo.NewServiceName(dto.ServiceName)
+	serviceName, err := vo.NewServiceName(dto.ServiceName, vo.ServiceNameValidateLevelNone)
 
 	if err != nil {
 		return nil, err
 	}
 
-	baseUrl, err := vo.NewBaseUrl(dto.BaseUrl)
+	baseUrl, err := vo.NewBaseUrl(dto.BaseUrl, vo.BaseUrlValidateLevelNone)
 
 	if err != nil {
 		return nil, err
 	}
+
+	date := time.Now()
 
 	return model.NewTargetService(
 		uuid.MustParse(dto.Id),
@@ -66,7 +69,7 @@ func (f TargetServiceFactory) CreateFromDb(dto apidtodb.TargetServiceDbDto) (*mo
 		dto.Description,
 		baseUrl,
 		dto.IsActive,
-		time.Now(), //todo fix
-		time.Now(),
+		nil,
+		&date,
 	), nil
 }

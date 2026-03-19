@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	apidtodb "transport/api/src/dto/db"
 	"transport/api/src/model"
 	"transport/api/src/vo"
@@ -18,6 +19,10 @@ type ITargetServiceRepository interface {
 	Delete(ctx context.Context, uuid uuid.UUID) error
 	FindBy(ctx context.Context, uuid uuid.UUID) (*apidtodb.TargetServiceDbDto, error)
 }
+
+const (
+	targetServiceTableName = "target_services"
+)
 
 type TargetServiceRepository struct {
 	connection db.DBInterface
@@ -38,7 +43,7 @@ func (r TargetServiceRepository) CheckIssetServiceName(
 		Db().
 		QueryRowContext(
 			ctx,
-			"select ts.id from target_services ts where ts.service_name = $1",
+			fmt.Sprintf("select ts.id from %s ts where ts.service_name = $1", targetServiceTableName),
 			serviceName.Value(),
 		).
 		Scan(&result)
@@ -57,7 +62,7 @@ func (r TargetServiceRepository) CheckIssetServiceName(
 func (r TargetServiceRepository) Save(ctx context.Context, targetService *model.TargetService) error {
 	_, err := r.connection.Db().ExecContext(
 		ctx,
-		"insert into target_services (id, service_name, description, base_url, is_active, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7)",
+		fmt.Sprintf("insert into %s (id, service_name, description, base_url, is_active, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7)", targetServiceTableName),
 		targetService.Id(),
 		targetService.ServiceName().Value(),
 		targetService.Description(),
@@ -73,7 +78,7 @@ func (r TargetServiceRepository) Save(ctx context.Context, targetService *model.
 func (r TargetServiceRepository) Delete(ctx context.Context, uuid uuid.UUID) error {
 	_, err := r.connection.Db().ExecContext(
 		ctx,
-		"delete from target_services where id = $1", //todo make table name to const
+		fmt.Sprintf("delete from %s where id = $1", targetServiceTableName),
 		uuid,
 	)
 
@@ -82,7 +87,7 @@ func (r TargetServiceRepository) Delete(ctx context.Context, uuid uuid.UUID) err
 
 func (r TargetServiceRepository) FindBy(ctx context.Context, uuid uuid.UUID) (*apidtodb.TargetServiceDbDto, error) {
 	row := r.connection.Db().QueryRowContext(ctx,
-		"SELECT ts.id, ts.service_name, ts.description, ts.base_url, ts.is_active FROM target_services ts WHERE ts.id = $1",
+		fmt.Sprintf("SELECT ts.id, ts.service_name, ts.description, ts.base_url, ts.is_active FROM %s ts WHERE ts.id = $1", targetServiceTableName),
 		uuid.String())
 
 	var targetServiceDbDto apidtodb.TargetServiceDbDto
