@@ -15,6 +15,11 @@ import (
 	"transport/pkg/utils/backoff"
 )
 
+type IHttpServer interface {
+	Start() error
+	Shutdown(ctx context.Context) error
+}
+
 type HttpServer struct {
 	server *http.Server
 	logger logging.LoggerInterface
