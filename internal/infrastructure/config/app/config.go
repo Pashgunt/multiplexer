@@ -1,10 +1,10 @@
 package appconfig
 
 import (
-	"transport/internal/application/observability/logging"
 	"transport/internal/infrastructure/config"
 	"transport/internal/infrastructure/config/types"
 	"transport/internal/infrastructure/db"
+	"transport/pkg/logging"
 )
 
 type Config struct {

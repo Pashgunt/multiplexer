@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"strings"
-	"transport/internal/application/observability/logging"
 	kafkaconnection "transport/internal/domain/connection"
+	logging2 "transport/pkg/logging"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -18,10 +18,10 @@ type ConsumerInterface interface {
 type Consumer struct {
 	reader  *kafka.Reader
 	isReady bool
-	logger  logging.LoggerInterface
+	logger  logging2.LoggerInterface
 }
 
-func NewConsumer(config Config, logger logging.LoggerInterface) ConsumerInterface {
+func NewConsumer(config Config, logger logging2.LoggerInterface) ConsumerInterface {
 	return &Consumer{
 		reader: kafka.NewReader(kafka.ReaderConfig{
 			Brokers:     []string{config.Broker},
@@ -36,10 +36,10 @@ func NewConsumer(config Config, logger logging.LoggerInterface) ConsumerInterfac
 func (consumer *Consumer) Fetch() (kafka.Message, error) {
 	brokers := strings.Join(consumer.reader.Config().Brokers, ",")
 
-	consumer.logger.Info(logging.NewKafkaConnectionLogEntity("Waiting a message", brokers))
+	consumer.logger.Info(logging2.NewKafkaConnectionLogEntity("Waiting a message", brokers))
 
 	if !consumer.isReady {
-		err := logging.NewKafkaConsumerNotReady(brokers, "Consumer is not ready, cant start read message")
+		err := logging2.NewKafkaConsumerNotReady(brokers, "Consumer is not ready, cant start read message")
 		consumer.logger.Error(err)
 
 		return kafka.Message{}, err
@@ -53,7 +53,7 @@ func (consumer *Consumer) Fetch() (kafka.Message, error) {
 		return message, err
 	}
 
-	consumer.logger.Info(logging.NewKafkaConnectionLogEntity("Success get message "+string(message.Value), brokers))
+	consumer.logger.Info(logging2.NewKafkaConnectionLogEntity("Success get message "+string(message.Value), brokers))
 
 	return message, nil
 }
@@ -83,7 +83,7 @@ func (consumer *Consumer) doCommit(messages []kafka.Message, ctx context.Context
 			return consumer.doCommit(messages, ctx, retryCount-1)
 		}
 
-		return logging.NewKafkaCommitError(messages[0].Topic, messages[0].Partition, messages[0].Offset, err.Error())
+		return logging2.NewKafkaCommitError(messages[0].Topic, messages[0].Partition, messages[0].Offset, err.Error())
 	}
 
 	return nil

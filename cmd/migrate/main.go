@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"transport/api/database/migrations"
 	appcommand "transport/internal/application/commands/app"
-	"transport/internal/application/observability/logging"
+	logging2 "transport/pkg/logging"
 	"transport/pkg/utils/backoff"
 
 	_ "github.com/lib/pq"
@@ -33,14 +33,14 @@ func main() {
 		app.
 			Logger.
 			GetLogger(backoff.AppLogger).
-			Error(logging.NewAppError(fmt.Sprintf("Failed to setup migrator: %s", err.Error())))
+			Error(logging2.NewAppError(fmt.Sprintf("Failed to setup migrator: %s", err.Error())))
 	}
 
 	version, _ := migrator.Version()
 	app.
 		Logger.
 		GetLogger(backoff.AppLogger).
-		Info(logging.NewAppLogEntity(fmt.Sprintf("Current migration version: %d", version)))
+		Info(logging2.NewAppLogEntity(fmt.Sprintf("Current migration version: %d", version)))
 
 	switch {
 	case *reset:
@@ -48,28 +48,28 @@ func main() {
 			app.
 				Logger.
 				GetLogger(backoff.AppLogger).
-				Error(logging.NewAppError(fmt.Sprintf("Failed to reset:: %s", err.Error())))
+				Error(logging2.NewAppError(fmt.Sprintf("Failed to reset:: %s", err.Error())))
 		}
 	case *down:
 		if err := migrator.Down(); err != nil {
 			app.
 				Logger.
 				GetLogger(backoff.AppLogger).
-				Error(logging.NewAppError(fmt.Sprintf("Failed to rollback:: %s", err.Error())))
+				Error(logging2.NewAppError(fmt.Sprintf("Failed to rollback:: %s", err.Error())))
 		}
 	case *status:
 		if err := migrator.Status(); err != nil {
 			app.
 				Logger.
 				GetLogger(backoff.AppLogger).
-				Error(logging.NewAppError(fmt.Sprintf("Failed to get status:: %s", err.Error())))
+				Error(logging2.NewAppError(fmt.Sprintf("Failed to get status:: %s", err.Error())))
 		}
 	default:
 		if err := migrator.Up(); err != nil {
 			app.
 				Logger.
 				GetLogger(backoff.AppLogger).
-				Error(logging.NewAppError(fmt.Sprintf("Failed to apply migrations:: %s", err.Error())))
+				Error(logging2.NewAppError(fmt.Sprintf("Failed to apply migrations:: %s", err.Error())))
 		}
 	}
 
@@ -77,5 +77,5 @@ func main() {
 	app.
 		Logger.
 		GetLogger(backoff.AppLogger).
-		Info(logging.NewAppLogEntity(fmt.Sprintf("New migration version: %d", newVersion)))
+		Info(logging2.NewAppLogEntity(fmt.Sprintf("New migration version: %d", newVersion)))
 }

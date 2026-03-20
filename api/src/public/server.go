@@ -10,8 +10,8 @@ import (
 	"transport/api/src/repository"
 	apiservice "transport/api/src/service"
 	apiutils "transport/api/src/utils"
-	"transport/internal/application/observability/logging"
 	appconfig "transport/internal/infrastructure/config/app"
+	"transport/pkg/logging"
 	"transport/pkg/utils/backoff"
 )
 
@@ -44,7 +44,6 @@ func NewHttpServer(config appconfig.Config) *HttpServer {
 		middleware.AllowHttpMethodMiddleware(http.MethodPost),
 	))
 
-	//todo add swagger
 	router.HandleFunc(fmt.Sprintf("/api/v1/target-services/{%s}", apiutils.Uuid), middleware.Chain(
 		handler.Delete,
 		middleware.LogHandlerMiddleware(logger),

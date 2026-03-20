@@ -2,9 +2,9 @@ package config
 
 import (
 	"os"
-	"transport/internal/application/observability/logging"
 	"transport/internal/infrastructure/config/types"
 	"transport/internal/infrastructure/pool"
+	"transport/pkg/logging"
 
 	"gopkg.in/yaml.v3"
 )

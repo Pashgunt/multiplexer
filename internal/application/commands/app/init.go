@@ -1,11 +1,11 @@
 package appcommand
 
 import (
-	"transport/internal/application/observability/logging"
 	"transport/internal/infrastructure/config"
 	appconfig "transport/internal/infrastructure/config/app"
 	"transport/internal/infrastructure/config/types"
 	"transport/internal/infrastructure/db"
+	"transport/pkg/logging"
 	"transport/pkg/utils/backoff"
 )
 

@@ -11,5 +11,5 @@ func NewNotFoundError(modelName string) NotFoundError {
 }
 
 func (n NotFoundError) Error() string {
-	return fmt.Sprintf("Entity not found: %s", n.modelName) //todo add language file
+	return fmt.Sprintf("Entity not found: %s", n.modelName)
 }

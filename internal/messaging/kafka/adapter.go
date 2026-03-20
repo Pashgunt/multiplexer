@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 	"time"
-	"transport/internal/application/observability/logging"
 	kafkaconnection "transport/internal/domain/connection"
 	appconfig "transport/internal/infrastructure/config/app"
+	logging2 "transport/pkg/logging"
 	"transport/pkg/utils/backoff"
 )
 
@@ -25,7 +25,7 @@ type Adapter struct {
 	connections   []ConnectionInterface
 	configs       []Config
 	mutex         sync.RWMutex
-	logger        logging.LoggerInterface
+	logger        logging2.LoggerInterface
 	hasConnection bool
 }
 
@@ -79,7 +79,7 @@ func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 					continue
 				}
 
-				adapter.logger.Info(logging.NewKafkaConnectionLogEntity("Successfully connected to Kafka.", config.Broker))
+				adapter.logger.Info(logging2.NewKafkaConnectionLogEntity("Successfully connected to Kafka.", config.Broker))
 				resultsChan <- connection
 
 				if adapter.hasConnection == false {
@@ -128,7 +128,7 @@ func (adapter *Adapter) CloseAll(ctx context.Context) {
 		adapter.CloseAll(ctx)
 	}
 
-	adapter.logger.Info(logging.NewKafkaConnectionLogEntity("Successfully closed Kafka connections.", ""))
+	adapter.logger.Info(logging2.NewKafkaConnectionLogEntity("Successfully closed Kafka connections.", ""))
 }
 
 func (adapter *Adapter) doConnect(
@@ -143,7 +143,7 @@ func (adapter *Adapter) doConnect(
 	connection, err := NewConnection(connCtx, config, adapter.logger)
 
 	if err != nil && retryCount > 0 {
-		adapter.logger.Warning(logging.NewKafkaConnectionLogEntity("Retry connect to kafka", config.Broker))
+		adapter.logger.Warning(logging2.NewKafkaConnectionLogEntity("Retry connect to kafka", config.Broker))
 
 		select {
 		case <-time.After(retryTimeout):
@@ -152,7 +152,7 @@ func (adapter *Adapter) doConnect(
 	}
 
 	if err != nil {
-		return connection, logging.NewKafkaConnectionError(config.Broker, "Cant connect to Kafka")
+		return connection, logging2.NewKafkaConnectionError(config.Broker, "Cant connect to Kafka")
 	}
 
 	return connection, nil

@@ -3,7 +3,7 @@ package kafka
 import (
 	"context"
 	"errors"
-	"transport/internal/application/observability/logging"
+	logging2 "transport/pkg/logging"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -28,7 +28,7 @@ type Connection struct {
 	connection *kafka.Conn
 	config     Config
 	consumer   ConsumerInterface
-	logger     logging.LoggerInterface
+	logger     logging2.LoggerInterface
 }
 
 func (connection *Connection) SetConsumer(consumer ConsumerInterface) {
@@ -47,7 +47,7 @@ func (connection *Connection) Close() error {
 	return connection.connection.Close()
 }
 
-func NewConnection(ctx context.Context, config Config, logger logging.LoggerInterface) (ConnectionInterface, error) {
+func NewConnection(ctx context.Context, config Config, logger logging2.LoggerInterface) (ConnectionInterface, error) {
 	connection, err := kafka.DialContext(ctx, "tcp", config.Broker)
 
 	if err != nil {
@@ -55,7 +55,7 @@ func NewConnection(ctx context.Context, config Config, logger logging.LoggerInte
 			return nil, err
 		}
 
-		return nil, logging.NewKafkaConnectionError(config.Broker, err.Error())
+		return nil, logging2.NewKafkaConnectionError(config.Broker, err.Error())
 	}
 
 	return &Connection{

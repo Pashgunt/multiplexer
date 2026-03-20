@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"transport/internal/application/observability/logging"
+	logging2 "transport/pkg/logging"
 
 	"github.com/google/uuid"
 )
@@ -20,10 +20,10 @@ func Chain(h http.HandlerFunc, middlewares ...Middleware) http.HandlerFunc {
 	return h
 }
 
-func LogHandlerMiddleware(logger logging.LoggerInterface) Middleware {
+func LogHandlerMiddleware(logger logging2.LoggerInterface) Middleware {
 	return func(handlerFunc http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			logger.Info(logging.NewApiLogEntity(fmt.Sprintf("Handled HTTP Request: %s %s", r.Method, r.URL.Path)))
+			logger.Info(logging2.NewApiLogEntity(fmt.Sprintf("Handled HTTP Request: %s %s", r.Method, r.URL.Path)))
 			return
 		}
 	}

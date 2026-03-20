@@ -2,7 +2,7 @@ package config
 
 import (
 	"os"
-	"transport/internal/application/observability/logging"
+	"transport/pkg/logging"
 )
 
 type ValidatorTransportStructInterface interface {

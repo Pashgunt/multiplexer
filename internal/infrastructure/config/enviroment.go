@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 	"regexp"
-	"transport/internal/application/observability/logging"
+	"transport/pkg/logging"
 
 	"github.com/joho/godotenv"
 )
