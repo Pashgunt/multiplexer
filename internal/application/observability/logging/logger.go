@@ -6,6 +6,7 @@ import (
 	"transport/pkg/utils/backoff"
 )
 
+// todo вынести все логгирование в pkg
 type LoggerInterface interface {
 	Info(interface{})
 	Warning(interface{})
@@ -65,5 +66,33 @@ func (logger *AppLogger) Info(object interface{}) {
 }
 
 func (logger *AppLogger) Error(error error) {
+	logger.logger.Error(error.Error())
+}
+
+type ApiLogger struct {
+	logger *slog.Logger
+}
+
+func NewApiLogger(level slog.Level) LoggerInterface {
+	return &ApiLogger{
+		logger: slog.
+			New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})).
+			WithGroup(backoff.GroupNameApiLogger),
+	}
+}
+
+func (logger *ApiLogger) Warning(object interface{}) {
+	apiLogEntity := object.(ApiLogEntity)
+
+	logger.logger.Warn(apiLogEntity.Message)
+}
+
+func (logger *ApiLogger) Info(object interface{}) {
+	apiLogEntity := object.(ApiLogEntity)
+
+	logger.logger.Info(apiLogEntity.Message)
+}
+
+func (logger *ApiLogger) Error(error error) {
 	logger.logger.Error(error.Error())
 }

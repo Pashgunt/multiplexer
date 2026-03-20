@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	//todo добавить сначал проверкич то все запустилось и только потом чтобы начинало все работать
 	ctxGracefulShutdown, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	app := appcommand.NewKernel().Init().Config()
 	adapter := kafka.NewAdapter(app)

@@ -10,15 +10,27 @@ import (
 	"transport/api/src/repository"
 	apiservice "transport/api/src/service"
 	apiutils "transport/api/src/utils"
+	"transport/internal/application/observability/logging"
 	appconfig "transport/internal/infrastructure/config/app"
+	"transport/pkg/utils/backoff"
 )
 
 type HttpServer struct {
 	server *http.Server
+	logger logging.LoggerInterface
 }
 
 func NewHttpServer(config appconfig.Config) *HttpServer {
 	router := http.NewServeMux()
+	logger := config.Logger.GetLogger(backoff.ApiLogger)
+
+	server := &HttpServer{
+		server: &http.Server{
+			Addr:    config.Environment.Get("PORT"),
+			Handler: router,
+		},
+		logger: logger,
+	}
 
 	service := apiservice.NewTargetServiceService(
 		repository.NewTargetServiceRepository(config.PgSql),
@@ -26,24 +38,21 @@ func NewHttpServer(config appconfig.Config) *HttpServer {
 	)
 	handler := apihandler.NewTargetServiceHandler(service)
 
-	//todo add log middleware
 	router.HandleFunc("/api/v1/target-services", middleware.Chain(
 		handler.Create,
+		middleware.LogHandlerMiddleware(logger),
 		middleware.AllowHttpMethodMiddleware(http.MethodPost),
 	))
 
+	//todo add swagger
 	router.HandleFunc(fmt.Sprintf("/api/v1/target-services/{%s}", apiutils.Uuid), middleware.Chain(
 		handler.Delete,
+		middleware.LogHandlerMiddleware(logger),
 		middleware.AllowHttpMethodMiddleware(http.MethodDelete),
 		middleware.UUIDPathParamMiddleware(apiutils.Uuid),
 	))
 
-	return &HttpServer{
-		server: &http.Server{
-			Addr:    config.Environment.Get("PORT"),
-			Handler: router,
-		},
-	}
+	return server
 }
 
 func (s HttpServer) Start() error {

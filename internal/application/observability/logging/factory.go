@@ -17,6 +17,8 @@ func (factory *defaultLoggerFactory) CreateLogger(loggerType backoff.LoggerType)
 		return NewKafkaConnectionLogger(slog.LevelDebug) //todo set debug level with config file
 	case backoff.AppLogger:
 		return NewAppLogger(slog.LevelDebug) //todo set debug level with config file
+	case backoff.ApiLogger:
+		return NewApiLogger(slog.LevelDebug) //todo set debug level with config file
 	default:
 		return nil
 	}

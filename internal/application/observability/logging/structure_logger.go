@@ -16,3 +16,11 @@ type AppLogEntity struct {
 func NewAppLogEntity(message string) AppLogEntity {
 	return AppLogEntity{Message: message}
 }
+
+type ApiLogEntity struct {
+	Message string
+}
+
+func NewApiLogEntity(message string) ApiLogEntity {
+	return ApiLogEntity{Message: message}
+}

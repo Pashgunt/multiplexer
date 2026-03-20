@@ -3,6 +3,7 @@ package backoff
 const (
 	GroupNameKafkaConnectionLogger = "kafka.connection"
 	GroupNameAppLogger             = "app"
+	GroupNameApiLogger             = "api"
 )
 
 const (
@@ -14,4 +15,5 @@ type LoggerType string
 const (
 	KafkaLogger LoggerType = "kafka"
 	AppLogger   LoggerType = "app"
+	ApiLogger   LoggerType = "api"
 )

@@ -80,7 +80,7 @@ func (kernel *Kernel) initTransportConfig() types.Config {
 
 func (kernel *Kernel) initLogger() logging.AdapterInterface {
 	logger := logging.NewAdapter()
-	logger.Init([]backoff.LoggerType{backoff.KafkaLogger, backoff.AppLogger})
+	logger.Init([]backoff.LoggerType{backoff.KafkaLogger, backoff.AppLogger, backoff.ApiLogger})
 
 	return logger
 }
