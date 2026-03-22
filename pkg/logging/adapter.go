@@ -15,6 +15,7 @@ type Adapter struct {
 	once    sync.Once
 	mutex   sync.RWMutex
 	factory LoggerFactory
+	levels  map[backoff.LoggerType]backoff.LoggerLevel
 }
 
 func (adapter *Adapter) GetLogger(loggerType backoff.LoggerType) LoggerInterface {
@@ -26,7 +27,7 @@ func (adapter *Adapter) GetLogger(loggerType backoff.LoggerType) LoggerInterface
 		adapter.mutex.RUnlock()
 		adapter.mutex.Lock()
 
-		logger = adapter.factory.CreateLogger(loggerType)
+		logger = adapter.factory.CreateLogger(loggerType, adapter.levels[loggerType])
 		adapter.loggers[loggerType] = logger
 
 		adapter.mutex.Unlock()
@@ -46,14 +47,15 @@ func (adapter *Adapter) Init(loggerTypes []backoff.LoggerType) {
 				continue
 			}
 
-			adapter.loggers[loggerType] = adapter.factory.CreateLogger(loggerType)
+			adapter.loggers[loggerType] = adapter.factory.CreateLogger(loggerType, adapter.levels[loggerType])
 		}
 	})
 }
 
-func NewAdapter() AdapterInterface {
+func NewAdapter(levels map[backoff.LoggerType]backoff.LoggerLevel) AdapterInterface {
 	return &Adapter{
-		factory: &defaultLoggerFactory{},
+		factory: NewDefaultLoggerFactory(),
 		loggers: map[backoff.LoggerType]LoggerInterface{},
+		levels:  levels,
 	}
 }

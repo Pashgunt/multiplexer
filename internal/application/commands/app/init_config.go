@@ -66,8 +66,8 @@ func (kernel *Kernel) initEnvironment() config.EnvironmentInterface {
 func (kernel *Kernel) initTransportConfig() types.Config {
 	cfg, err := config.NewLoader(
 		config.NewValidator(),
-		kernel.config.Environment,
-		kernel.config.Logger.GetLogger(backoff.AppLogger),
+		kernel.Config().Environment,
+		kernel.Config().Logger.GetLogger(backoff.AppLogger),
 	).
 		Load(backoff.ConfigPath)
 
@@ -79,7 +79,11 @@ func (kernel *Kernel) initTransportConfig() types.Config {
 }
 
 func (kernel *Kernel) initLogger() logging.AdapterInterface {
-	logger := logging.NewAdapter()
+	logger := logging.NewAdapter(map[backoff.LoggerType]backoff.LoggerLevel{
+		backoff.KafkaLogger: backoff.LoggerLevel(kernel.Config().Environment.Get(backoff.EnvKafkaDebugLevelKey)),
+		backoff.AppLogger:   backoff.LoggerLevel(kernel.Config().Environment.Get(backoff.EnvAppDebugLevelKey)),
+		backoff.ApiLogger:   backoff.LoggerLevel(kernel.Config().Environment.Get(backoff.EnvApiDebugLevelKey)),
+	})
 	logger.Init([]backoff.LoggerType{backoff.KafkaLogger, backoff.AppLogger, backoff.ApiLogger})
 
 	return logger

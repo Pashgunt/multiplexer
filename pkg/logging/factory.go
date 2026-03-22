@@ -1,24 +1,30 @@
 package logging
 
 import (
-	"log/slog"
 	"transport/pkg/utils/backoff"
 )
 
 type LoggerFactory interface {
-	CreateLogger(loggerType backoff.LoggerType) LoggerInterface
+	CreateLogger(loggerType backoff.LoggerType, level backoff.LoggerLevel) LoggerInterface
 }
 
-type defaultLoggerFactory struct{}
+type DefaultLoggerFactory struct{}
 
-func (factory *defaultLoggerFactory) CreateLogger(loggerType backoff.LoggerType) LoggerInterface {
+func NewDefaultLoggerFactory() *DefaultLoggerFactory {
+	return &DefaultLoggerFactory{}
+}
+
+func (factory *DefaultLoggerFactory) CreateLogger(
+	loggerType backoff.LoggerType,
+	level backoff.LoggerLevel,
+) LoggerInterface {
 	switch loggerType {
 	case backoff.KafkaLogger:
-		return NewKafkaConnectionLogger(slog.LevelDebug) //todo set debug level with config file
+		return NewKafkaConnectionLogger(level.GetSlogLevel())
 	case backoff.AppLogger:
-		return NewAppLogger(slog.LevelDebug) //todo set debug level with config file
+		return NewAppLogger(level.GetSlogLevel())
 	case backoff.ApiLogger:
-		return NewApiLogger(slog.LevelDebug) //todo set debug level with config file
+		return NewApiLogger(level.GetSlogLevel())
 	default:
 		return nil
 	}

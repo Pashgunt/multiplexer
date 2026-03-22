@@ -12,7 +12,10 @@ func main() {
 	ctxGracefulShutdown, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	config := appcommand.NewKernel().Init().Config()
+	config := appcommand.
+		NewKernel().
+		Init().
+		Config()
 	app := appcommand.NewApp(config)
 
 	app.StartAll(ctxGracefulShutdown)

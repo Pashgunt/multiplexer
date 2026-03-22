@@ -6,7 +6,6 @@ import (
 	"transport/pkg/utils/backoff"
 )
 
-// todo вынести все логгирование в pkg
 type LoggerInterface interface {
 	Info(interface{})
 	Warning(interface{})
