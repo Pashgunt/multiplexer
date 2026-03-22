@@ -17,10 +17,18 @@ func PutConfigMapPool(configMap map[string]interface{}) {
 }
 
 var BinaryDataPool = &sync.Pool{
-	New: func() interface{} { return make([]byte, 1024) },
+	New: func() interface{} {
+		data := make([]byte, 1024)
+
+		return &data
+	},
 }
 
 func PutBinaryDataPool(binaryData []byte) {
 	binaryData = binaryData[:0]
-	BinaryDataPool.Put(binaryData)
+	BinaryDataPool.Put(&binaryData)
+}
+
+func GetBinaryDataPool() []byte {
+	return *BinaryDataPool.Get().(*[]byte)
 }

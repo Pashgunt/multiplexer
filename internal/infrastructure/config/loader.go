@@ -30,7 +30,7 @@ func (loader *Loader) Load(configPath string) (*types.Config, error) {
 		return nil, err
 	}
 
-	data := pool.BinaryDataPool.Get().([]byte)
+	data := pool.GetBinaryDataPool()
 	defer pool.PutBinaryDataPool(data)
 
 	data, err := os.ReadFile(configPath)

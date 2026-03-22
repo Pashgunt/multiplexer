@@ -15,7 +15,6 @@ func ConsumeMessage(consumer kafka.ConsumerInterface) {
 			continue
 		}
 
-		if err = consumer.Commit([]kafkago.Message{message}, kafkaconnection.DefaultConsumer()); err != nil {
-		}
+		_ = consumer.Commit([]kafkago.Message{message}, kafkaconnection.DefaultConsumer())
 	}
 }

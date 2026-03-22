@@ -3,6 +3,8 @@ package db
 import (
 	"database/sql"
 
+	// Register PostgreSQL driver for database/sql.
+	// This driver is required for sql.Open() to work with PostgreSQL.
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
 )

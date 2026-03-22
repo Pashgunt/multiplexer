@@ -47,12 +47,22 @@ func NewApp(config appconfig.Config) App {
 
 func (a App) StartAll(_ context.Context) {
 	go kafkacommand.StartProcess(a.kafka.Connections(), a.config)
-	go a.http.Start()
+	go func() {
+		if err := a.http.Start(); err != nil {
+			a.logger.Error(err)
+		}
+	}()
 }
 
 func (a App) StopAll(ctx context.Context) {
 	a.logger.Info(logging.NewAppLogEntity("start close all connections"))
 	a.kafka.CloseAll(ctx)
-	a.http.Shutdown(ctx)
+
+	if err := a.http.Shutdown(ctx); err != nil {
+		a.logger.Error(err)
+
+		return
+	}
+
 	a.logger.Info(logging.NewAppLogEntity("shutdown http server connection"))
 }
