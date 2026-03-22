@@ -33,7 +33,7 @@ func NewApp(config appconfig.Config) App {
 	appLogger.Info(logging.NewAppLogEntity("Loaded Kafka connections"))
 
 	appLogger.Info(logging.NewAppLogEntity("Start Http Server"))
-	httpServer := public.NewHttpServer(config)
+	httpServer := public.NewHTTPServer(config)
 
 	appLogger.Info(logging.NewAppLogEntity("Started Http Server"))
 
@@ -45,7 +45,7 @@ func NewApp(config appconfig.Config) App {
 	}
 }
 
-func (a App) StartAll(ctx context.Context) {
+func (a App) StartAll(_ context.Context) {
 	go kafkacommand.StartProcess(a.kafka.Connections(), a.config)
 	go a.http.Start()
 }

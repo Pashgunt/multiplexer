@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 	"transport/api/src/factory"
 	apihandler "transport/api/src/handler"
 	"transport/api/src/middleware"
@@ -20,25 +21,26 @@ type IHttpServer interface {
 	Shutdown(ctx context.Context) error
 }
 
-type HttpServer struct {
+type HTTPServer struct {
 	server *http.Server
 	logger logging.LoggerInterface
 }
 
-func NewHttpServer(config appconfig.Config) *HttpServer {
+func NewHTTPServer(config appconfig.Config) *HTTPServer {
 	router := http.NewServeMux()
-	logger := config.Logger.GetLogger(backoff.ApiLogger)
+	logger := config.Logger.GetLogger(backoff.APILogger)
 
-	server := &HttpServer{
+	server := &HTTPServer{
 		server: &http.Server{
-			Addr:    config.Environment.Get("PORT"),
-			Handler: router,
+			Addr:              config.Environment.Get("PORT"),
+			Handler:           router,
+			ReadHeaderTimeout: 10 * time.Second,
 		},
 		logger: logger,
 	}
 
 	service := apiservice.NewTargetServiceService(
-		repository.NewTargetServiceRepository(config.PgSql),
+		repository.NewTargetServiceRepository(config.PgSQL),
 		factory.NewTargetServiceFactory(),
 	)
 	handler := apihandler.NewTargetServiceHandler(service)
@@ -46,23 +48,23 @@ func NewHttpServer(config appconfig.Config) *HttpServer {
 	router.HandleFunc("/api/v1/target-services", middleware.Chain(
 		handler.Create,
 		middleware.LogHandlerMiddleware(logger),
-		middleware.AllowHttpMethodMiddleware(http.MethodPost),
+		middleware.AllowHTTPMethodMiddleware(http.MethodPost),
 	))
 
-	router.HandleFunc(fmt.Sprintf("/api/v1/target-services/{%s}", apiutils.Uuid), middleware.Chain(
+	router.HandleFunc(fmt.Sprintf("/api/v1/target-services/{%s}", apiutils.UUID.String()), middleware.Chain(
 		handler.Delete,
 		middleware.LogHandlerMiddleware(logger),
-		middleware.AllowHttpMethodMiddleware(http.MethodDelete),
-		middleware.UUIDPathParamMiddleware(apiutils.Uuid),
+		middleware.AllowHTTPMethodMiddleware(http.MethodDelete),
+		middleware.UUIDPathParamMiddleware(apiutils.UUID),
 	))
 
 	return server
 }
 
-func (s HttpServer) Start() error {
+func (s HTTPServer) Start() error {
 	return s.server.ListenAndServe()
 }
 
-func (s HttpServer) Shutdown(ctx context.Context) error {
+func (s HTTPServer) Shutdown(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
 }

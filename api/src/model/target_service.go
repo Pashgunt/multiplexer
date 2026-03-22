@@ -11,17 +11,17 @@ type TargetService struct {
 	id          uuid.UUID
 	serviceName vo.ServiceName
 	description string
-	baseUrl     vo.BaseUrl
+	baseURL     vo.BaseURL
 	isActive    bool
 	createdAt   *time.Time
 	updatedAt   *time.Time
 }
 
-func (t *TargetService) Id() uuid.UUID {
+func (t *TargetService) ID() uuid.UUID {
 	return t.id
 }
 
-func (t *TargetService) SetId(id uuid.UUID) {
+func (t *TargetService) SetID(id uuid.UUID) {
 	t.id = id
 }
 
@@ -41,12 +41,12 @@ func (t *TargetService) SetDescription(description string) {
 	t.description = description
 }
 
-func (t *TargetService) BaseUrl() vo.BaseUrl {
-	return t.baseUrl
+func (t *TargetService) BaseURL() vo.BaseURL {
+	return t.baseURL
 }
 
-func (t *TargetService) SetBaseUrl(baseUrl vo.BaseUrl) {
-	t.baseUrl = baseUrl
+func (t *TargetService) SetBaseURL(baseURL vo.BaseURL) {
+	t.baseURL = baseURL
 }
 
 func (t *TargetService) IsActive() bool {
@@ -77,7 +77,7 @@ func NewTargetService(
 	id uuid.UUID,
 	serviceName vo.ServiceName,
 	description string,
-	baseUrl vo.BaseUrl,
+	baseURL vo.BaseURL,
 	isActive bool,
 	createdAt *time.Time,
 	updatedAt *time.Time,
@@ -86,7 +86,7 @@ func NewTargetService(
 		id:          id,
 		serviceName: serviceName,
 		description: description,
-		baseUrl:     baseUrl,
+		baseURL:     baseURL,
 		isActive:    isActive,
 		createdAt:   createdAt,
 		updatedAt:   updatedAt,

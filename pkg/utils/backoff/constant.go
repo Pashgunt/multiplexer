@@ -7,7 +7,7 @@ import (
 const (
 	GroupNameKafkaConnectionLogger = "kafka.connection"
 	GroupNameAppLogger             = "app"
-	GroupNameApiLogger             = "api"
+	GroupNameAPILogger             = "api"
 )
 
 const (
@@ -42,11 +42,11 @@ const (
 const (
 	KafkaLogger LoggerType = "kafka"
 	AppLogger   LoggerType = "app"
-	ApiLogger   LoggerType = "api"
+	APILogger   LoggerType = "api"
 )
 
 const (
 	EnvKafkaDebugLevelKey = "KAFKA_DEBUG_LEVEL"
 	EnvAppDebugLevelKey   = "APP_DEBUG_LEVEL"
-	EnvApiDebugLevelKey   = "API_DEBUG_LEVEL"
+	EnvAPIDebugLevelKey   = "API_DEBUG_LEVEL"
 )

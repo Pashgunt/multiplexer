@@ -1,9 +1,9 @@
 package apidtodb
 
 type TargetServiceDbDto struct {
-	Id          string
+	ID          string
 	ServiceName string
 	Description string
-	BaseUrl     string
+	BaseURL     string
 	IsActive    bool
 }

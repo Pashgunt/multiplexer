@@ -25,9 +25,9 @@ func main() {
 
 	app := appcommand.NewKernel().Init().Config()
 
-	defer app.PgSql.Close()
+	defer app.PgSQL.Close()
 
-	migrator := migrations.NewMigrator(app.PgSql.Db())
+	migrator := migrations.NewMigrator(app.PgSQL.Db())
 
 	if err := migrator.Setup(); err != nil {
 		app.

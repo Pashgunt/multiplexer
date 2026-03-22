@@ -17,10 +17,10 @@ func NewAppLogEntity(message string) AppLogEntity {
 	return AppLogEntity{Message: message}
 }
 
-type ApiLogEntity struct {
+type APILogEntity struct {
 	Message string
 }
 
-func NewApiLogEntity(message string) ApiLogEntity {
-	return ApiLogEntity{Message: message}
+func NewAPILogEntity(message string) APILogEntity {
+	return APILogEntity{Message: message}
 }

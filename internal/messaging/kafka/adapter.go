@@ -82,7 +82,7 @@ func (adapter *Adapter) ConnectAll(kafka kafkaconnection.Kafka) {
 				adapter.logger.Info(logging2.NewKafkaConnectionLogEntity("Successfully connected to Kafka.", config.Broker))
 				resultsChan <- connection
 
-				if adapter.hasConnection == false {
+				if !adapter.hasConnection {
 					adapter.setHasConnection(true)
 				}
 			}
@@ -145,10 +145,9 @@ func (adapter *Adapter) doConnect(
 	if err != nil && retryCount > 0 {
 		adapter.logger.Warning(logging2.NewKafkaConnectionLogEntity("Retry connect to kafka", config.Broker))
 
-		select {
-		case <-time.After(retryTimeout):
-			return adapter.doConnect(config, timeout, retryTimeout, retryCount-1)
-		}
+		<-time.After(retryTimeout)
+
+		return adapter.doConnect(config, timeout, retryTimeout, retryCount-1)
 	}
 
 	if err != nil {

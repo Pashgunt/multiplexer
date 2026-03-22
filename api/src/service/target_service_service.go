@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"transport/api/src/command"
-	"transport/api/src/domain_service"
+	"transport/api/src/domainservice"
 	"transport/api/src/factory"
 	"transport/api/src/repository"
 )
@@ -16,7 +16,7 @@ type ITargetServiceService interface {
 type TargetServiceService struct {
 	repository    repository.ITargetServiceRepository
 	factory       factory.ITargetServiceFactory
-	domainService domain_service.ITargetDomainService
+	domainService domainservice.ITargetDomainService
 }
 
 func NewTargetServiceService(
@@ -26,7 +26,7 @@ func NewTargetServiceService(
 	return &TargetServiceService{
 		repository:    repository,
 		factory:       factory,
-		domainService: domain_service.NewTargetDomainService(repository, factory),
+		domainService: domainservice.NewTargetDomainService(repository, factory),
 	}
 }
 
@@ -41,15 +41,15 @@ func (s TargetServiceService) Create(ctx context.Context, command command.Create
 		return "", err
 	}
 
-	return entity.Id().String(), s.repository.Save(ctx, entity)
+	return entity.ID().String(), s.repository.Save(ctx, entity)
 }
 
 func (s TargetServiceService) Delete(ctx context.Context, command command.DeleteTargetServiceCommand) error {
-	targetService, err := s.domainService.CanDelete(ctx, command.Id)
+	targetService, err := s.domainService.CanDelete(ctx, command.ID)
 
 	if err != nil {
 		return err
 	}
 
-	return s.repository.Delete(ctx, targetService.Id())
+	return s.repository.Delete(ctx, targetService.ID())
 }

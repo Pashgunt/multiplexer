@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	envNamePgDatabaseUrl = "PG_DATABASE_URL"
+	envNamePgDatabaseURL = "PG_DATABASE_URL"
 )
 
 type KernelInterface interface {
@@ -38,13 +38,13 @@ func (kernel *Kernel) Init() KernelInterface {
 	kernel.config.Environment = kernel.initEnvironment()
 	kernel.config.Logger = kernel.initLogger()
 	kernel.config.Config = kernel.initTransportConfig()
-	kernel.config.PgSql = kernel.initDatabase()
+	kernel.config.PgSQL = kernel.initDatabase()
 
 	return kernel
 }
 
-func (kernel *Kernel) initDatabase() db.DBInterface {
-	pgsql := db.NewPostgresSQLDB(kernel.config.Environment.Get(envNamePgDatabaseUrl))
+func (kernel *Kernel) initDatabase() db.IDB {
+	pgsql := db.NewPostgresSQLDB(kernel.config.Environment.Get(envNamePgDatabaseURL))
 
 	if err := pgsql.Open(); err != nil {
 		panic(err)
@@ -82,9 +82,9 @@ func (kernel *Kernel) initLogger() logging.AdapterInterface {
 	logger := logging.NewAdapter(map[backoff.LoggerType]backoff.LoggerLevel{
 		backoff.KafkaLogger: backoff.LoggerLevel(kernel.Config().Environment.Get(backoff.EnvKafkaDebugLevelKey)),
 		backoff.AppLogger:   backoff.LoggerLevel(kernel.Config().Environment.Get(backoff.EnvAppDebugLevelKey)),
-		backoff.ApiLogger:   backoff.LoggerLevel(kernel.Config().Environment.Get(backoff.EnvApiDebugLevelKey)),
+		backoff.APILogger:   backoff.LoggerLevel(kernel.Config().Environment.Get(backoff.EnvAPIDebugLevelKey)),
 	})
-	logger.Init([]backoff.LoggerType{backoff.KafkaLogger, backoff.AppLogger, backoff.ApiLogger})
+	logger.Init([]backoff.LoggerType{backoff.KafkaLogger, backoff.AppLogger, backoff.APILogger})
 
 	return logger
 }

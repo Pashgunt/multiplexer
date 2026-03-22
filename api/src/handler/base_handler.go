@@ -9,7 +9,7 @@ import (
 type baseHandler struct {
 }
 
-func sendJSON(w http.ResponseWriter, status int, response interface{}) {
+func (h *baseHandler) sendJSON(w http.ResponseWriter, status int, response interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	err := json.NewEncoder(w).Encode(response)
@@ -19,8 +19,8 @@ func sendJSON(w http.ResponseWriter, status int, response interface{}) {
 	}
 }
 
-func sendCreated(w http.ResponseWriter, id string) {
-	sendJSON(w, http.StatusCreated, dto.ApiResponse{
+func (h *baseHandler) sendCreated(w http.ResponseWriter, id string) {
+	h.sendJSON(w, http.StatusCreated, dto.APIResponse{
 		Success: true,
 		Data: map[string]string{
 			"result": id,
@@ -28,12 +28,12 @@ func sendCreated(w http.ResponseWriter, id string) {
 	})
 }
 
-func sendDeleted(w http.ResponseWriter) {
+func (h *baseHandler) sendDeleted(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func sendError(w http.ResponseWriter, status int, errMsg string) {
-	sendJSON(w, status, dto.ApiResponse{
+func (h *baseHandler) sendError(w http.ResponseWriter, status int, errMsg string) {
+	h.sendJSON(w, status, dto.APIResponse{
 		Success: false,
 		Error:   errMsg,
 	})

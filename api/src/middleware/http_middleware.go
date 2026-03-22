@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	apiutils "transport/api/src/utils"
 	logging2 "transport/pkg/logging"
 
 	"github.com/google/uuid"
@@ -21,15 +22,14 @@ func Chain(h http.HandlerFunc, middlewares ...Middleware) http.HandlerFunc {
 }
 
 func LogHandlerMiddleware(logger logging2.LoggerInterface) Middleware {
-	return func(handlerFunc http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			logger.Info(logging2.NewApiLogEntity(fmt.Sprintf("Handled HTTP Request: %s %s", r.Method, r.URL.Path)))
-			return
+	return func(_ http.HandlerFunc) http.HandlerFunc {
+		return func(_ http.ResponseWriter, r *http.Request) {
+			logger.Info(logging2.NewAPILogEntity(fmt.Sprintf("Handled HTTP Request: %s %s", r.Method, r.URL.Path)))
 		}
 	}
 }
 
-func AllowHttpMethodMiddleware(method string) Middleware {
+func AllowHTTPMethodMiddleware(method string) Middleware {
 	return func(handlerFunc http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == method {
@@ -49,7 +49,7 @@ func AllowHttpMethodMiddleware(method string) Middleware {
 	}
 }
 
-func UUIDPathParamMiddleware(pathParam string) Middleware {
+func UUIDPathParamMiddleware(pathParam apiutils.PathParam) Middleware {
 	return func(handlerFunc http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			parts := strings.Split(strings.TrimSuffix(r.URL.Path, "/"), "/")

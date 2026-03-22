@@ -36,8 +36,8 @@ func (logger *KafkaConnectionLogger) Info(object interface{}) {
 	logger.logger.Info(kafkaConnectionLogEntity.Message, "broker", kafkaConnectionLogEntity.Broker)
 }
 
-func (logger *KafkaConnectionLogger) Error(error error) {
-	logger.logger.Error(error.Error())
+func (logger *KafkaConnectionLogger) Error(err error) {
+	logger.logger.Error(err.Error())
 }
 
 type AppLogger struct {
@@ -64,34 +64,34 @@ func (logger *AppLogger) Info(object interface{}) {
 	logger.logger.Info(appLogEntity.Message)
 }
 
-func (logger *AppLogger) Error(error error) {
-	logger.logger.Error(error.Error())
+func (logger *AppLogger) Error(err error) {
+	logger.logger.Error(err.Error())
 }
 
-type ApiLogger struct {
+type APILogger struct {
 	logger *slog.Logger
 }
 
-func NewApiLogger(level slog.Level) LoggerInterface {
-	return &ApiLogger{
+func NewAPILogger(level slog.Level) LoggerInterface {
+	return &APILogger{
 		logger: slog.
 			New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})).
-			WithGroup(backoff.GroupNameApiLogger),
+			WithGroup(backoff.GroupNameAPILogger),
 	}
 }
 
-func (logger *ApiLogger) Warning(object interface{}) {
-	apiLogEntity := object.(ApiLogEntity)
+func (logger *APILogger) Warning(object interface{}) {
+	apiLogEntity := object.(APILogEntity)
 
 	logger.logger.Warn(apiLogEntity.Message)
 }
 
-func (logger *ApiLogger) Info(object interface{}) {
-	apiLogEntity := object.(ApiLogEntity)
+func (logger *APILogger) Info(object interface{}) {
+	apiLogEntity := object.(APILogEntity)
 
 	logger.logger.Info(apiLogEntity.Message)
 }
 
-func (logger *ApiLogger) Error(error error) {
-	logger.logger.Error(error.Error())
+func (logger *APILogger) Error(err error) {
+	logger.logger.Error(err.Error())
 }

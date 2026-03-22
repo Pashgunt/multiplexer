@@ -26,7 +26,7 @@ func (h TargetServiceHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var dto apidto.TargetServiceDto
 
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body")
+		h.sendError(w, http.StatusBadRequest, "Invalid request body")
 
 		return
 	}
@@ -37,25 +37,25 @@ func (h TargetServiceHandler) Create(w http.ResponseWriter, r *http.Request) {
 	id, err := h.service.Create(ctx, command.CreateTargetServiceCommand{Dto: dto})
 
 	if err != nil {
-		sendError(w, http.StatusBadRequest, err.Error())
+		h.sendError(w, http.StatusBadRequest, err.Error())
 
 		return
 	}
 
-	sendCreated(w, id)
+	h.sendCreated(w, id)
 }
 
 func (h TargetServiceHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	err := h.service.Delete(
 		r.Context(),
-		command.DeleteTargetServiceCommand{Id: uuid.MustParse(r.Context().Value(apiutils.Uuid).(string))},
+		command.DeleteTargetServiceCommand{ID: uuid.MustParse(r.Context().Value(apiutils.UUID).(string))},
 	)
 
 	if err != nil {
-		sendError(w, http.StatusBadRequest, err.Error())
+		h.sendError(w, http.StatusBadRequest, err.Error())
 
 		return
 	}
 
-	sendDeleted(w)
+	h.sendDeleted(w)
 }

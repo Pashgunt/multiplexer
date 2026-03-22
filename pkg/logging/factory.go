@@ -23,8 +23,8 @@ func (factory *DefaultLoggerFactory) CreateLogger(
 		return NewKafkaConnectionLogger(level.GetSlogLevel())
 	case backoff.AppLogger:
 		return NewAppLogger(level.GetSlogLevel())
-	case backoff.ApiLogger:
-		return NewApiLogger(level.GetSlogLevel())
+	case backoff.APILogger:
+		return NewAPILogger(level.GetSlogLevel())
 	default:
 		return nil
 	}

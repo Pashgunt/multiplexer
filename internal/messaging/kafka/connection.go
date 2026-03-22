@@ -24,7 +24,6 @@ type ConnectionSetterInterface interface {
 }
 
 type Connection struct {
-	uuid       string
 	connection *kafka.Conn
 	config     Config
 	consumer   ConsumerInterface

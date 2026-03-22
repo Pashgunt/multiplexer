@@ -11,5 +11,5 @@ type Config struct {
 	Logger      logging.AdapterInterface
 	Environment config.EnvironmentInterface
 	Config      types.Config
-	PgSql       db.DBInterface
+	PgSQL       db.IDB
 }

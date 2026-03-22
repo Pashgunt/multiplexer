@@ -62,7 +62,7 @@ func (consumer *Consumer) Commit(messages []kafka.Message, consumerEntity kafkac
 	ctxTimeoutCommit, cancel := context.WithTimeout(context.Background(), consumerEntity.Timeout())
 	defer cancel()
 
-	if err := consumer.doCommit(messages, ctxTimeoutCommit, consumerEntity.RetryCountCommit()); err != nil {
+	if err := consumer.doCommit(ctxTimeoutCommit, messages, consumerEntity.RetryCountCommit()); err != nil {
 		consumer.logger.Error(err)
 
 		return err
@@ -71,7 +71,7 @@ func (consumer *Consumer) Commit(messages []kafka.Message, consumerEntity kafkac
 	return nil
 }
 
-func (consumer *Consumer) doCommit(messages []kafka.Message, ctx context.Context, retryCount int) error {
+func (consumer *Consumer) doCommit(ctx context.Context, messages []kafka.Message, retryCount int) error {
 	err := consumer.reader.CommitMessages(ctx, messages...)
 
 	if err != nil {
@@ -80,7 +80,7 @@ func (consumer *Consumer) doCommit(messages []kafka.Message, ctx context.Context
 		}
 
 		if retryCount > 0 {
-			return consumer.doCommit(messages, ctx, retryCount-1)
+			return consumer.doCommit(ctx, messages, retryCount-1)
 		}
 
 		return logging2.NewKafkaCommitError(messages[0].Topic, messages[0].Partition, messages[0].Offset, err.Error())

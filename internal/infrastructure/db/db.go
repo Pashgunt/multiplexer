@@ -7,7 +7,7 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-type DBInterface interface {
+type IDB interface {
 	GetterDBInterface
 	Open() error
 	Close() error

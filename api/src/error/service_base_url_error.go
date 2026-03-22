@@ -1,13 +1,13 @@
 package error
 
-type ServiceBaseUrlError struct {
+type ServiceBaseURLError struct {
 	error string
 }
 
-func NewServiceBaseUrlError(error string) ServiceBaseUrlError {
-	return ServiceBaseUrlError{error: error}
+func NewServiceBaseURLError(err string) ServiceBaseURLError {
+	return ServiceBaseURLError{error: err}
 }
 
-func (s ServiceBaseUrlError) Error() string {
+func (s ServiceBaseURLError) Error() string {
 	return s.error
 }

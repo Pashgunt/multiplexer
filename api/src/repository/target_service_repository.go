@@ -25,10 +25,10 @@ const (
 )
 
 type TargetServiceRepository struct {
-	connection db.DBInterface
+	connection db.IDB
 }
 
-func NewTargetServiceRepository(connection db.DBInterface) *TargetServiceRepository {
+func NewTargetServiceRepository(connection db.IDB) *TargetServiceRepository {
 	return &TargetServiceRepository{connection: connection}
 }
 
@@ -63,10 +63,10 @@ func (r TargetServiceRepository) Save(ctx context.Context, targetService *model.
 	_, err := r.connection.Db().ExecContext(
 		ctx,
 		fmt.Sprintf("insert into %s (id, service_name, description, base_url, is_active, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7)", targetServiceTableName),
-		targetService.Id(),
+		targetService.ID(),
 		targetService.ServiceName().Value(),
 		targetService.Description(),
-		targetService.BaseUrl().Value(),
+		targetService.BaseURL().Value(),
 		targetService.IsActive(),
 		targetService.CreatedAt(),
 		targetService.UpdatedAt(),
@@ -93,10 +93,10 @@ func (r TargetServiceRepository) FindBy(ctx context.Context, uuid uuid.UUID) (*a
 	var targetServiceDbDto apidtodb.TargetServiceDbDto
 
 	err := row.Scan(
-		&targetServiceDbDto.Id,
+		&targetServiceDbDto.ID,
 		&targetServiceDbDto.ServiceName,
 		&targetServiceDbDto.Description,
-		&targetServiceDbDto.BaseUrl,
+		&targetServiceDbDto.BaseURL,
 		&targetServiceDbDto.IsActive,
 	)
 

@@ -28,13 +28,13 @@ func convert(config types.Config) []Config {
 		}
 
 		for _, broker := range brokers {
-			key := broker + topic.Options.Kafka.GroupId
+			key := broker + topic.Options.Kafka.GroupID
 			kafkaBrokerConfig, isset := kafkaConfig[key]
 
 			if !isset {
 				kafkaConfig[key] = Config{
 					Broker:  broker,
-					GroupID: topic.Options.Kafka.GroupId,
+					GroupID: topic.Options.Kafka.GroupID,
 					Topics:  topic.ConsumerTopics,
 				}
 

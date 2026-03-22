@@ -29,7 +29,7 @@ func (f TargetServiceFactory) Create(command command.CreateTargetServiceCommand)
 		return nil, err
 	}
 
-	baseUrl, err := vo.NewBaseUrl(command.Dto.BaseUrl, vo.BaseUrlValidateLevelStrict)
+	baseURL, err := vo.NewBaseURL(command.Dto.BaseURL, vo.BaseURLValidateLevelStrict)
 
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (f TargetServiceFactory) Create(command command.CreateTargetServiceCommand)
 		uuid.New(),
 		serviceName,
 		command.Dto.Description,
-		baseUrl,
+		baseURL,
 		command.Dto.IsActive,
 		&date,
 		&date,
@@ -55,7 +55,7 @@ func (f TargetServiceFactory) CreateFromDb(dto apidtodb.TargetServiceDbDto) (*mo
 		return nil, err
 	}
 
-	baseUrl, err := vo.NewBaseUrl(dto.BaseUrl, vo.BaseUrlValidateLevelNone)
+	baseURL, err := vo.NewBaseURL(dto.BaseURL, vo.BaseURLValidateLevelNone)
 
 	if err != nil {
 		return nil, err
@@ -64,10 +64,10 @@ func (f TargetServiceFactory) CreateFromDb(dto apidtodb.TargetServiceDbDto) (*mo
 	date := time.Now()
 
 	return model.NewTargetService(
-		uuid.MustParse(dto.Id),
+		uuid.MustParse(dto.ID),
 		serviceName,
 		dto.Description,
-		baseUrl,
+		baseURL,
 		dto.IsActive,
 		nil,
 		&date,

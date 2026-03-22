@@ -4,8 +4,8 @@ type ServiceNameError struct {
 	error string
 }
 
-func NewServiceNameError(error string) ServiceNameError {
-	return ServiceNameError{error: error}
+func NewServiceNameError(err string) ServiceNameError {
+	return ServiceNameError{error: err}
 }
 
 func (s ServiceNameError) Error() string {

@@ -6,61 +6,61 @@ import (
 )
 
 const (
-	serviceBaseUrlMaxLength = 255
-	serviceBaseUrlMinLength = 8
+	serviceBaseURLMaxLength = 255
+	serviceBaseURLMinLength = 8
 )
 
 type ValidateLevel int
 
 const (
-	BaseUrlValidateLevelStrict ValidateLevel = 1
-	BaseUrlValidateLevelNone   ValidateLevel = 0
+	BaseURLValidateLevelStrict ValidateLevel = 1
+	BaseURLValidateLevelNone   ValidateLevel = 0
 )
 
-type BaseUrl struct {
+type BaseURL struct {
 	value                string
 	maxLength, minLength int
 }
 
-func NewBaseUrl(baseUrl string, validateLevel ValidateLevel) (BaseUrl, error) {
-	baseUrlObj := BaseUrl{
-		value:     baseUrl,
-		maxLength: serviceBaseUrlMaxLength,
-		minLength: serviceBaseUrlMinLength,
+func NewBaseURL(baseURL string, validateLevel ValidateLevel) (BaseURL, error) {
+	baseURLObj := BaseURL{
+		value:     baseURL,
+		maxLength: serviceBaseURLMaxLength,
+		minLength: serviceBaseURLMinLength,
 	}
 
-	if validateLevel == BaseUrlValidateLevelStrict {
-		isValid, err := baseUrlObj.isValidPattern()
+	if validateLevel == BaseURLValidateLevelStrict {
+		isValid, err := baseURLObj.isValidPattern()
 
 		if err != nil {
-			return BaseUrl{}, err
+			return BaseURL{}, err
 		}
 
 		if !isValid {
-			return BaseUrl{}, apierror.NewServiceBaseUrlError("invalid pattern base url")
+			return BaseURL{}, apierror.NewServiceBaseURLError("invalid pattern base url")
 		}
 
-		isValid = baseUrlObj.isValidLength()
+		isValid = baseURLObj.isValidLength()
 
 		if !isValid {
-			return BaseUrl{}, apierror.NewServiceBaseUrlError("invalid length base url")
+			return BaseURL{}, apierror.NewServiceBaseURLError("invalid length base url")
 		}
 	}
 
-	return baseUrlObj, nil
+	return baseURLObj, nil
 }
 
-func (u BaseUrl) isValidPattern() (bool, error) {
+func (u BaseURL) isValidPattern() (bool, error) {
 	return regexp.MatchString(
 		`^https?:\/\/[^\s\/$.?#].[^\s]*$`,
 		u.value,
 	)
 }
 
-func (u BaseUrl) isValidLength() bool {
+func (u BaseURL) isValidLength() bool {
 	return len([]rune(u.value)) <= u.maxLength && len([]rune(u.value)) >= u.minLength
 }
 
-func (u BaseUrl) Value() string {
+func (u BaseURL) Value() string {
 	return u.value
 }
