@@ -19,49 +19,53 @@ import (
 type IHttpServer interface {
 	Start() error
 	Shutdown(ctx context.Context) error
+	HandleFunc(db db.IDB)
 }
 
 type HTTPServer struct {
 	server *http.Server
 	logger logging.LoggerInterface
+	router *http.ServeMux
 }
 
 func NewHTTPServer(
 	config appconfig.Config,
 	logger logging.LoggerInterface,
-	db db.IDB, // todo add registry
-) *HTTPServer {
+) IHttpServer {
 	router := http.NewServeMux()
 
-	server := &HTTPServer{
+	return &HTTPServer{
 		server: &http.Server{
 			Addr:              config.Environment.Get("PORT"),
 			Handler:           router,
 			ReadHeaderTimeout: 10 * time.Second,
 		},
 		logger: logger,
+		router: router,
 	}
+}
 
+func (s HTTPServer) HandleFunc(
+	db db.IDB,
+) {
 	service := apiservice.NewTargetServiceService(
 		repository.NewTargetServiceRepository(db),
 		factory.NewTargetServiceFactory(),
 	)
 	handler := apihandler.NewTargetServiceHandler(service)
 
-	router.HandleFunc("/api/v1/target-services", middleware.Chain(
+	s.router.HandleFunc("/api/v1/target-services", middleware.Chain(
 		handler.Create,
-		middleware.LogHandlerMiddleware(server.logger),
-		middleware.AllowHTTPMethodMiddleware(http.MethodPost),
+		//middleware.LogHandlerMiddleware(s.logger),
+		//middleware.AllowHTTPMethodMiddleware(http.MethodPost),
 	))
 
-	router.HandleFunc(fmt.Sprintf("/api/v1/target-services/{%s}", apiutils.UUID.String()), middleware.Chain(
+	s.router.HandleFunc(fmt.Sprintf("/api/v1/target-services/{%s}", apiutils.UUID.String()), middleware.Chain(
 		handler.Delete,
-		middleware.LogHandlerMiddleware(server.logger),
+		middleware.LogHandlerMiddleware(s.logger),
 		middleware.AllowHTTPMethodMiddleware(http.MethodDelete),
 		middleware.UUIDPathParamMiddleware(apiutils.UUID),
 	))
-
-	return server
 }
 
 func (s HTTPServer) Start() error {

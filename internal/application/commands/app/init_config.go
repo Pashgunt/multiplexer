@@ -5,10 +5,6 @@ import (
 	appconfig "transport/internal/infrastructure/config/app"
 )
 
-const (
-	envNamePgDatabaseURL = "PG_DATABASE_URL"
-)
-
 type KernelInterface interface {
 	KernelGetterInterface
 	Init() KernelInterface

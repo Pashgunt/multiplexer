@@ -2,7 +2,8 @@ package appcommand
 
 import (
 	"context"
-	"sync"
+	"errors"
+	"net/http"
 	"transport/api/src/public"
 	appconfig "transport/internal/infrastructure/config/app"
 	"transport/internal/infrastructure/db"
@@ -18,7 +19,6 @@ type IApp interface {
 
 type App struct {
 	http   public.IHttpServer
-	config appconfig.Config
 	logger logging.AdapterInterface
 	redis  appredis.IRedis
 	pgsql  db.IDB
@@ -26,10 +26,6 @@ type App struct {
 
 func (a App) HTTP() public.IHttpServer {
 	return a.http
-}
-
-func (a App) Config() appconfig.Config {
-	return a.config
 }
 
 func (a App) Logger() logging.AdapterInterface {
@@ -51,47 +47,36 @@ func NewApp(config appconfig.Config) App {
 		backoff.APILogger:   backoff.LoggerLevel(config.Environment.Get(backoff.EnvAPIDebugLevelKey)),
 	})
 	logger.Init([]backoff.LoggerType{backoff.KafkaLogger, backoff.AppLogger, backoff.APILogger})
-	sqldb := db.NewPostgresSQLDB(config.Environment.Get(envNamePgDatabaseURL))
 
 	return App{
 		http: public.NewHTTPServer(
 			config,
 			logger.GetLogger(backoff.APILogger),
-			sqldb,
 		),
-		config: config,
 		logger: logger,
-		redis: appredis.NewRedis(
-			config.Environment.Get("REDIS"),
-			config.Environment.Get("REDIS_PASSWORD"),
-		),
-		pgsql: sqldb,
+		redis:  appredis.NewRedis(appredis.NewParams(config.Environment)),
+		pgsql:  db.NewPostgresSQLDB(db.NewParams(config.Environment)),
 	}
 }
 
 func (a App) StartAll(_ context.Context) {
-	wg := sync.WaitGroup{}
-	wg.Add(3)
+	if err := a.pgsql.Open(); err != nil {
+		panic(err)
+	}
 
-	wg.Go(func() {
-		if err := a.pgsql.Open(); err != nil {
-			panic(err)
-		}
-	})
+	if err := a.redis.Ping(); err != nil {
+		panic(err)
+	}
 
-	wg.Go(func() {
-		if err := a.redis.Ping(); err != nil {
-			panic(err)
-		}
-	})
+	a.http.HandleFunc(a.pgsql)
 
-	wg.Go(func() {
+	go func() {
 		if err := a.http.Start(); err != nil {
-			panic(err)
+			if !errors.Is(err, http.ErrServerClosed) {
+				panic(err)
+			}
 		}
-	})
-
-	wg.Wait()
+	}()
 }
 
 func (a App) StopAll(ctx context.Context) {

@@ -20,8 +20,8 @@ type GetterDBInterface interface {
 }
 
 type PostgresSQLDB struct {
-	db                 *sql.DB
-	databaseSourceName string
+	db     *sql.DB
+	params Params
 }
 
 func (p *PostgresSQLDB) Close() error {
@@ -33,7 +33,7 @@ func (p *PostgresSQLDB) Db() *sql.DB {
 }
 
 func (p *PostgresSQLDB) Open() error {
-	db, err := sql.Open(string(goose.DialectPostgres), p.databaseSourceName)
+	db, err := sql.Open(string(goose.DialectPostgres), p.params.DatabaseSourceName)
 
 	if err != nil {
 		return err
@@ -44,6 +44,6 @@ func (p *PostgresSQLDB) Open() error {
 	return nil
 }
 
-func NewPostgresSQLDB(databaseSourceName string) *PostgresSQLDB {
-	return &PostgresSQLDB{databaseSourceName: databaseSourceName}
+func NewPostgresSQLDB(params Params) *PostgresSQLDB {
+	return &PostgresSQLDB{params: params}
 }

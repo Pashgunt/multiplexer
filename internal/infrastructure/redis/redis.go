@@ -14,14 +14,17 @@ type IRedis interface {
 
 type Redis struct {
 	client *redis.Client
+	params Params
 }
 
-func NewRedis(addr string, password string) IRedis {
+func NewRedis(params Params) IRedis {
 	return &Redis{
 		client: redis.NewClient(&redis.Options{
-			Addr:     addr,
-			Password: password,
+			Addr:     params.Addr,
+			Password: params.Password,
+			DB:       params.DB,
 		}),
+		params: params,
 	}
 }
 
