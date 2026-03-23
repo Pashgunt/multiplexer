@@ -13,13 +13,14 @@ import (
 	apiutils "transport/api/src/utils"
 	appconfig "transport/internal/infrastructure/config/app"
 	"transport/internal/infrastructure/db"
+	"transport/internal/infrastructure/redis"
 	"transport/pkg/logging"
 )
 
 type IHttpServer interface {
 	Start() error
 	Shutdown(ctx context.Context) error
-	HandleFunc(db db.IDB)
+	HandleFunc(db db.IDB, redis redis.IRedis)
 }
 
 type HTTPServer struct {
@@ -46,11 +47,13 @@ func NewHTTPServer(
 }
 
 func (s HTTPServer) HandleFunc(
-	db db.IDB, //todo add DI
+	db db.IDB, // todo add DI
+	redis redis.IRedis,
 ) {
 	service := apiservice.NewTargetServiceService(
 		repository.NewTargetServiceRepository(db),
 		factory.NewTargetServiceFactory(),
+		redis,
 	)
 	handler := apihandler.NewTargetServiceHandler(service)
 

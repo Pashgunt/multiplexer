@@ -77,7 +77,7 @@ func (a App) StartAll(_ context.Context) {
 
 	wg.Wait()
 
-	a.http.HandleFunc(a.pgsql)
+	a.http.HandleFunc(a.pgsql, a.redis)
 
 	go func() {
 		if err := a.http.Start(); err != nil {

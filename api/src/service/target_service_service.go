@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"time"
 	"transport/api/src/command"
 	"transport/api/src/domainservice"
 	apidtodb "transport/api/src/dto/db"
 	"transport/api/src/factory"
 	"transport/api/src/repository"
+	"transport/internal/infrastructure/redis"
 )
 
 type ITargetServiceService interface {
@@ -19,16 +21,19 @@ type TargetServiceService struct {
 	repository    repository.ITargetServiceRepository
 	factory       factory.ITargetServiceFactory
 	domainService domainservice.ITargetDomainService
+	redis         redis.IRedis
 }
 
 func NewTargetServiceService(
 	repository repository.ITargetServiceRepository,
 	factory factory.ITargetServiceFactory,
+	redis redis.IRedis,
 ) *TargetServiceService {
 	return &TargetServiceService{
 		repository:    repository,
 		factory:       factory,
 		domainService: domainservice.NewTargetDomainService(repository, factory),
+		redis:         redis,
 	}
 }
 
@@ -57,5 +62,16 @@ func (s TargetServiceService) Delete(ctx context.Context, command command.Delete
 }
 
 func (s TargetServiceService) Get(ctx context.Context, command command.GetTargetServiceCommand) (*apidtodb.TargetServiceDbDto, error) {
-	return s.repository.FindBy(ctx, command.ID)
+	var dto apidtodb.TargetServiceDbDto
+	err := s.redis.Get(ctx, command.ID.String(), dto)
+
+	if err == nil {
+		return &dto, nil
+	}
+
+	result, err := s.repository.FindBy(ctx, command.ID)
+
+	s.redis.Set(ctx, command.ID.String(), result, 5*time.Minute)
+
+	return result, err
 }
