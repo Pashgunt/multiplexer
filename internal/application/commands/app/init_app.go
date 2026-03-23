@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"sync"
 	"transport/api/src/public"
 	appconfig "transport/internal/infrastructure/config/app"
 	"transport/internal/infrastructure/db"
@@ -60,13 +61,21 @@ func NewApp(config appconfig.Config) App {
 }
 
 func (a App) StartAll(_ context.Context) {
-	if err := a.pgsql.Open(); err != nil {
-		panic(err)
-	}
+	wg := sync.WaitGroup{}
 
-	if err := a.redis.Ping(); err != nil {
-		panic(err)
-	}
+	wg.Go(func() {
+		if err := a.pgsql.Open(); err != nil {
+			panic(err)
+		}
+	})
+
+	wg.Go(func() {
+		if err := a.redis.Ping(); err != nil {
+			panic(err)
+		}
+	})
+
+	wg.Wait()
 
 	a.http.HandleFunc(a.pgsql)
 

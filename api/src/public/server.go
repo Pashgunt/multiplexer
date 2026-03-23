@@ -46,7 +46,7 @@ func NewHTTPServer(
 }
 
 func (s HTTPServer) HandleFunc(
-	db db.IDB,
+	db db.IDB, //todo add DI
 ) {
 	service := apiservice.NewTargetServiceService(
 		repository.NewTargetServiceRepository(db),
@@ -61,9 +61,21 @@ func (s HTTPServer) HandleFunc(
 	))
 
 	s.router.HandleFunc(fmt.Sprintf("/api/v1/target-services/{%s}", apiutils.UUID.String()), middleware.Chain(
-		handler.Delete,
+		func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				handler.Get(w, r)
+			case http.MethodDelete:
+				handler.Delete(w, r)
+			default:
+				http.Error(
+					w,
+					fmt.Sprintf("Method %s not allowed", r.Method),
+					http.StatusMethodNotAllowed,
+				)
+			}
+		},
 		middleware.LogHandlerMiddleware(s.logger),
-		middleware.AllowHTTPMethodMiddleware(http.MethodDelete),
 		middleware.UUIDPathParamMiddleware(apiutils.UUID),
 	))
 }

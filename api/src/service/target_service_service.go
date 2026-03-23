@@ -4,6 +4,7 @@ import (
 	"context"
 	"transport/api/src/command"
 	"transport/api/src/domainservice"
+	apidtodb "transport/api/src/dto/db"
 	"transport/api/src/factory"
 	"transport/api/src/repository"
 )
@@ -11,6 +12,7 @@ import (
 type ITargetServiceService interface {
 	Create(ctx context.Context, command command.CreateTargetServiceCommand) (string, error)
 	Delete(ctx context.Context, command command.DeleteTargetServiceCommand) error
+	Get(ctx context.Context, command command.GetTargetServiceCommand) (*apidtodb.TargetServiceDbDto, error)
 }
 
 type TargetServiceService struct {
@@ -52,4 +54,8 @@ func (s TargetServiceService) Delete(ctx context.Context, command command.Delete
 	}
 
 	return s.repository.Delete(ctx, targetService.ID())
+}
+
+func (s TargetServiceService) Get(ctx context.Context, command command.GetTargetServiceCommand) (*apidtodb.TargetServiceDbDto, error) {
+	return s.repository.FindBy(ctx, command.ID)
 }

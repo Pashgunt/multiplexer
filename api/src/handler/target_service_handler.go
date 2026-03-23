@@ -59,3 +59,24 @@ func (h TargetServiceHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	h.sendDeleted(w)
 }
+
+func (h TargetServiceHandler) Get(w http.ResponseWriter, r *http.Request) {
+	result, err := h.service.Get(
+		r.Context(),
+		command.GetTargetServiceCommand{ID: uuid.MustParse(r.Context().Value(apiutils.UUID).(string))},
+	)
+
+	if result == nil {
+		h.sendError(w, http.StatusNotFound, "Not Found")
+
+		return
+	}
+
+	if err != nil {
+		h.sendError(w, http.StatusBadRequest, err.Error())
+
+		return
+	}
+
+	h.sendItem(w, result)
+}

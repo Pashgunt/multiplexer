@@ -28,6 +28,15 @@ func (h *baseHandler) sendCreated(w http.ResponseWriter, id string) {
 	})
 }
 
+func (h *baseHandler) sendItem(w http.ResponseWriter, item interface{}) {
+	h.sendJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Data: map[string]interface{}{
+			"result": item,
+		},
+	})
+}
+
 func (h *baseHandler) sendDeleted(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNoContent)
 }
