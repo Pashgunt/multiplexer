@@ -5,9 +5,7 @@ import (
 	"sync"
 	"time"
 	kafkaconnection "transport/internal/domain/connection"
-	appconfig "transport/internal/infrastructure/config/app"
 	logging2 "transport/pkg/logging"
-	"transport/pkg/utils/backoff"
 )
 
 type AdapterInterface interface {
@@ -37,17 +35,18 @@ func (adapter *Adapter) setHasConnection(hasConnection bool) {
 	adapter.hasConnection = hasConnection
 }
 
-func NewAdapter(config appconfig.Config) AdapterInterface {
-	adapter := &Adapter{
-		configs:       convert(config.Config),
-		mutex:         sync.RWMutex{},
-		logger:        config.Logger.GetLogger(backoff.KafkaLogger),
-		hasConnection: false,
-	}
-	adapter.connections = make([]ConnectionInterface, 0, len(adapter.configs))
-
-	return adapter
-}
+// todo rework
+// func NewAdapter(config appconfig.Config) AdapterInterface {
+//	adapter := &Adapter{
+//		configs:       convert(config.Config),
+//		mutex:         sync.RWMutex{},
+//		logger:        config.Logger.GetLogger(backoff.KafkaLogger),
+//		hasConnection: false,
+//	}
+//	adapter.connections = make([]ConnectionInterface, 0, len(adapter.configs))
+//
+//	return adapter
+//}
 
 func (adapter *Adapter) Connections() []ConnectionInterface {
 	adapter.mutex.RLock()

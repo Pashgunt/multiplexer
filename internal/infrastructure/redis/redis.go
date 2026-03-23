@@ -1,0 +1,37 @@
+package redis
+
+import (
+	"context"
+	"time"
+
+	"github.com/redis/go-redis/v9"
+)
+
+type IRedis interface {
+	Ping() error
+	Close() error
+}
+
+type Redis struct {
+	client *redis.Client
+}
+
+func NewRedis(addr string, password string) IRedis {
+	return &Redis{
+		client: redis.NewClient(&redis.Options{
+			Addr:     addr,
+			Password: password,
+		}),
+	}
+}
+
+func (r *Redis) Ping() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	return r.client.Ping(ctx).Err()
+}
+
+func (r *Redis) Close() error {
+	return r.client.Close()
+}

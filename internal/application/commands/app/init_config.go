@@ -3,10 +3,6 @@ package appcommand
 import (
 	"transport/internal/infrastructure/config"
 	appconfig "transport/internal/infrastructure/config/app"
-	"transport/internal/infrastructure/config/types"
-	"transport/internal/infrastructure/db"
-	"transport/pkg/logging"
-	"transport/pkg/utils/backoff"
 )
 
 const (
@@ -36,21 +32,8 @@ func (kernel *Kernel) Config() appconfig.Config {
 
 func (kernel *Kernel) Init() KernelInterface {
 	kernel.config.Environment = kernel.initEnvironment()
-	kernel.config.Logger = kernel.initLogger()
-	kernel.config.Config = kernel.initTransportConfig()
-	kernel.config.PgSQL = kernel.initDatabase()
 
 	return kernel
-}
-
-func (kernel *Kernel) initDatabase() db.IDB {
-	pgsql := db.NewPostgresSQLDB(kernel.config.Environment.Get(envNamePgDatabaseURL))
-
-	if err := pgsql.Open(); err != nil {
-		panic(err)
-	}
-
-	return pgsql
 }
 
 func (kernel *Kernel) initEnvironment() config.EnvironmentInterface {
@@ -61,30 +44,4 @@ func (kernel *Kernel) initEnvironment() config.EnvironmentInterface {
 	}
 
 	return env
-}
-
-func (kernel *Kernel) initTransportConfig() types.Config {
-	cfg, err := config.NewLoader(
-		config.NewValidator(),
-		kernel.Config().Environment,
-		kernel.Config().Logger.GetLogger(backoff.AppLogger),
-	).
-		Load(backoff.ConfigPath)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return *cfg
-}
-
-func (kernel *Kernel) initLogger() logging.AdapterInterface {
-	logger := logging.NewAdapter(map[backoff.LoggerType]backoff.LoggerLevel{
-		backoff.KafkaLogger: backoff.LoggerLevel(kernel.Config().Environment.Get(backoff.EnvKafkaDebugLevelKey)),
-		backoff.AppLogger:   backoff.LoggerLevel(kernel.Config().Environment.Get(backoff.EnvAppDebugLevelKey)),
-		backoff.APILogger:   backoff.LoggerLevel(kernel.Config().Environment.Get(backoff.EnvAPIDebugLevelKey)),
-	})
-	logger.Init([]backoff.LoggerType{backoff.KafkaLogger, backoff.AppLogger, backoff.APILogger})
-
-	return logger
 }

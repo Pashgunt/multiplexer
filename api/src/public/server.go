@@ -12,8 +12,8 @@ import (
 	apiservice "transport/api/src/service"
 	apiutils "transport/api/src/utils"
 	appconfig "transport/internal/infrastructure/config/app"
+	"transport/internal/infrastructure/db"
 	"transport/pkg/logging"
-	"transport/pkg/utils/backoff"
 )
 
 type IHttpServer interface {
@@ -26,9 +26,12 @@ type HTTPServer struct {
 	logger logging.LoggerInterface
 }
 
-func NewHTTPServer(config appconfig.Config) *HTTPServer {
+func NewHTTPServer(
+	config appconfig.Config,
+	logger logging.LoggerInterface,
+	db db.IDB, // todo add registry
+) *HTTPServer {
 	router := http.NewServeMux()
-	logger := config.Logger.GetLogger(backoff.APILogger)
 
 	server := &HTTPServer{
 		server: &http.Server{
@@ -40,20 +43,20 @@ func NewHTTPServer(config appconfig.Config) *HTTPServer {
 	}
 
 	service := apiservice.NewTargetServiceService(
-		repository.NewTargetServiceRepository(config.PgSQL),
+		repository.NewTargetServiceRepository(db),
 		factory.NewTargetServiceFactory(),
 	)
 	handler := apihandler.NewTargetServiceHandler(service)
 
 	router.HandleFunc("/api/v1/target-services", middleware.Chain(
 		handler.Create,
-		middleware.LogHandlerMiddleware(logger),
+		middleware.LogHandlerMiddleware(server.logger),
 		middleware.AllowHTTPMethodMiddleware(http.MethodPost),
 	))
 
 	router.HandleFunc(fmt.Sprintf("/api/v1/target-services/{%s}", apiutils.UUID.String()), middleware.Chain(
 		handler.Delete,
-		middleware.LogHandlerMiddleware(logger),
+		middleware.LogHandlerMiddleware(server.logger),
 		middleware.AllowHTTPMethodMiddleware(http.MethodDelete),
 		middleware.UUIDPathParamMiddleware(apiutils.UUID),
 	))
