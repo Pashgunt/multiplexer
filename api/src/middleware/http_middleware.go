@@ -22,9 +22,10 @@ func Chain(h http.HandlerFunc, middlewares ...Middleware) http.HandlerFunc {
 }
 
 func LogHandlerMiddleware(logger logging2.LoggerInterface) Middleware {
-	return func(_ http.HandlerFunc) http.HandlerFunc {
-		return func(_ http.ResponseWriter, r *http.Request) {
+	return func(handlerFunc http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
 			logger.Info(logging2.NewAPILogEntity(fmt.Sprintf("Handled HTTP Request: %s %s", r.Method, r.URL.Path)))
+			handlerFunc(w, r)
 		}
 	}
 }

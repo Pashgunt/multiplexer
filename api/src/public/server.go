@@ -56,8 +56,8 @@ func (s HTTPServer) HandleFunc(
 
 	s.router.HandleFunc("/api/v1/target-services", middleware.Chain(
 		handler.Create,
-		//middleware.LogHandlerMiddleware(s.logger),
-		//middleware.AllowHTTPMethodMiddleware(http.MethodPost),
+		middleware.LogHandlerMiddleware(s.logger),
+		middleware.AllowHTTPMethodMiddleware(http.MethodPost),
 	))
 
 	s.router.HandleFunc(fmt.Sprintf("/api/v1/target-services/{%s}", apiutils.UUID.String()), middleware.Chain(
