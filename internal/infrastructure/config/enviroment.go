@@ -15,6 +15,8 @@ const (
 	EmptyEnvName = ""
 )
 
+var regex = regexp.MustCompile(`%env\(([^)]+)\)%`)
+
 type TransportOption = map[string]interface{}
 
 type EnvironmentInterface interface {
@@ -55,6 +57,8 @@ func (env *Environment) Replace(data map[string]interface{}) error {
 				envName := env.extractEnvName(envValue.(string))
 
 				if envName == EmptyEnvName {
+					optionParamValue[envKey] = envValue
+
 					continue
 				}
 
@@ -67,9 +71,7 @@ func (env *Environment) Replace(data map[string]interface{}) error {
 }
 
 func (env *Environment) extractEnvName(envString string) string {
-	re := regexp.MustCompile(`%env\(([^)]+)\)%`)
-
-	matches := re.FindStringSubmatch(envString)
+	matches := regex.FindStringSubmatch(envString)
 
 	if len(matches) > 1 {
 		return matches[1]
