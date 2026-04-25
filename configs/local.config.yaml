@@ -7,3 +7,6 @@ Redis:
 HTTP:
   Host: "localhost"
   Port: ":8080"
+  ReadTimeout: 10
+  WriteTimeout: 10
+  ReadHeaderTimeout: 10

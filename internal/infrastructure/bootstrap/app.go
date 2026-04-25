@@ -58,7 +58,7 @@ func getProvideOptions() []fx.Option {
 
 func startServer(srv *http.Server, cfg appconfig.Config, logger logging.AdapterInterface, lc fx.Lifecycle) {
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			go func() {
 				logger.GetLogger(backoff.AppLogger).Info(logging.AppLogEntity{Message: fmt.Sprintf("Starting HTTP server. Addr %s. Host: %s. Port: %s.", srv.Addr, cfg.HTTP.Host, cfg.HTTP.Port)})
 

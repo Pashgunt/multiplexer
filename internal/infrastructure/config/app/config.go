@@ -14,8 +14,11 @@ type Config struct {
 }
 
 type HTTPConfig struct {
-	Port string `yaml:"Port"`
-	Host string `yaml:"Host"`
+	Port              string `yaml:"Port"`
+	Host              string `yaml:"Host"`
+	ReadTimeout       int    `yaml:"ReadTimeout"`
+	WriteTimeout      int    `yaml:"WriteTimeout"`
+	ReadHeaderTimeout int    `yaml:"ReadHeaderTimeout"`
 }
 
 type DBConfig struct {

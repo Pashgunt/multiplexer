@@ -15,3 +15,7 @@ migrate-reset:
 
 linter:
 	golangci-lint run --fix
+
+compose:
+	cd deployments/docker && \
+	docker compose up -d
