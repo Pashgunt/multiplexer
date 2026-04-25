@@ -25,7 +25,7 @@ func (h TargetServiceHandler) Create(c *gin.Context) {
 	var dto apidto.TargetServiceDto
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&dto); err != nil {
-		c.JSON(http.StatusBadRequest, "")
+		c.JSON(http.StatusBadRequest, apidto.APIResponse{Error: err.Error()})
 
 		return
 	}
@@ -36,14 +36,12 @@ func (h TargetServiceHandler) Create(c *gin.Context) {
 	id, err := h.service.Create(ctx, command.CreateTargetServiceCommand{Dto: dto})
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, "")
+		c.JSON(http.StatusBadRequest, apidto.APIResponse{Error: err.Error()})
 
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"id": id,
-	})
+	c.JSON(http.StatusCreated, apidto.APIResponse{Data: id})
 }
 
 func (h TargetServiceHandler) Delete(c *gin.Context) {
@@ -53,7 +51,7 @@ func (h TargetServiceHandler) Delete(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, "")
+		c.JSON(http.StatusBadRequest, apidto.APIResponse{Error: err.Error()})
 
 		return
 	}
@@ -68,16 +66,16 @@ func (h TargetServiceHandler) Get(c *gin.Context) {
 	)
 
 	if result == nil {
-		c.JSON(http.StatusNotFound, "")
+		c.JSON(http.StatusNotFound, apidto.APIResponse{Error: "Not Found"})
 
 		return
 	}
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, "")
+		c.JSON(http.StatusBadRequest, apidto.APIResponse{Error: err.Error()})
 
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"items": result})
+	c.JSON(http.StatusOK, apidto.APIResponse{Data: result})
 }
