@@ -16,17 +16,17 @@ type ITargetDomainService interface {
 }
 
 type TargetDomainService struct {
-	repository repository.ITargetServiceRepository
-	factory    factory.ITargetServiceFactory
+	repository           repository.ITargetServiceRepository
+	targetServiceFactory factory.ITargetServiceFactory
 }
 
 func NewTargetDomainService(
 	repository repository.ITargetServiceRepository,
-	factory factory.ITargetServiceFactory,
+	targetServiceFactory factory.ITargetServiceFactory,
 ) ITargetDomainService {
 	return &TargetDomainService{
-		repository: repository,
-		factory:    factory,
+		repository:           repository,
+		targetServiceFactory: targetServiceFactory,
 	}
 }
 
@@ -55,5 +55,5 @@ func (s *TargetDomainService) CanDelete(ctx context.Context, uuid uuid.UUID) (*m
 		return nil, apierror.NewNotFoundError("target_service")
 	}
 
-	return s.factory.CreateFromDb(*targetServiceDto)
+	return s.targetServiceFactory.CreateFromDb(*targetServiceDto)
 }

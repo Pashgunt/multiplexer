@@ -2,26 +2,36 @@ package main
 
 import (
 	"context"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	appcommand "transport/internal/application/commands/app"
+	"transport/internal/infrastructure/bootstrap"
 )
 
 func main() {
-	ctxGracefulShutdown, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
+	app := bootstrap.NewApp()
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-	app := appcommand.NewApp(appcommand.
-		NewKernel().
-		Init().
-		Config())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	app.StartAll(ctxGracefulShutdown)
+	go func() {
+		<-quit
+		cancel()
+	}()
 
-	<-ctxGracefulShutdown.Done()
-	ctxShutdown, stopCtxShutdown := context.WithTimeout(context.Background(), 10*time.Second)
-	defer stopCtxShutdown()
+	if err := app.Start(ctx); err != nil {
+		panic(err)
+	}
 
-	app.StopAll(ctxShutdown)
+	<-ctx.Done()
+
+	stopCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := app.Stop(stopCtx); err != nil {
+		panic(err)
+	}
 }

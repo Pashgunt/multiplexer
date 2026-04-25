@@ -8,75 +8,76 @@ import (
 	"transport/api/src/command"
 	apidto "transport/api/src/dto"
 	"transport/api/src/service"
-	apiutils "transport/api/src/utils"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type TargetServiceHandler struct {
 	service service.ITargetServiceService
-	baseHandler
 }
 
 func NewTargetServiceHandler(service service.ITargetServiceService) *TargetServiceHandler {
 	return &TargetServiceHandler{service: service}
 }
 
-func (h TargetServiceHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h TargetServiceHandler) Create(c *gin.Context) {
 	var dto apidto.TargetServiceDto
 
-	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
-		h.sendError(w, http.StatusBadRequest, "Invalid request body")
+	if err := json.NewDecoder(c.Request.Body).Decode(&dto); err != nil {
+		c.JSON(http.StatusBadRequest, "")
 
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
 	id, err := h.service.Create(ctx, command.CreateTargetServiceCommand{Dto: dto})
 
 	if err != nil {
-		h.sendError(w, http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, "")
 
 		return
 	}
 
-	h.sendCreated(w, id)
+	c.JSON(http.StatusCreated, gin.H{
+		"id": id,
+	})
 }
 
-func (h TargetServiceHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h TargetServiceHandler) Delete(c *gin.Context) {
 	err := h.service.Delete(
-		r.Context(),
-		command.DeleteTargetServiceCommand{ID: uuid.MustParse(r.Context().Value(apiutils.UUID).(string))},
+		c.Request.Context(),
+		command.DeleteTargetServiceCommand{ID: uuid.MustParse(c.Param("id"))},
 	)
 
 	if err != nil {
-		h.sendError(w, http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, "")
 
 		return
 	}
 
-	h.sendDeleted(w)
+	c.JSON(http.StatusNoContent, nil)
 }
 
-func (h TargetServiceHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (h TargetServiceHandler) Get(c *gin.Context) {
 	result, err := h.service.Get(
-		r.Context(),
-		command.GetTargetServiceCommand{ID: uuid.MustParse(r.Context().Value(apiutils.UUID).(string))},
+		c.Request.Context(),
+		command.GetTargetServiceCommand{ID: uuid.MustParse(c.Param("id"))},
 	)
 
 	if result == nil {
-		h.sendError(w, http.StatusNotFound, "Not Found")
+		c.JSON(http.StatusNotFound, "")
 
 		return
 	}
 
 	if err != nil {
-		h.sendError(w, http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, "")
 
 		return
 	}
 
-	h.sendItem(w, result)
+	c.JSON(http.StatusOK, gin.H{"items": result})
 }

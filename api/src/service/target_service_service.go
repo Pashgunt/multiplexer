@@ -2,13 +2,15 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 	"transport/api/src/command"
 	"transport/api/src/domainservice"
 	apidtodb "transport/api/src/dto/db"
 	"transport/api/src/factory"
 	"transport/api/src/repository"
-	"transport/internal/infrastructure/redis"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type ITargetServiceService interface {
@@ -21,18 +23,19 @@ type TargetServiceService struct {
 	repository    repository.ITargetServiceRepository
 	factory       factory.ITargetServiceFactory
 	domainService domainservice.ITargetDomainService
-	redis         redis.IRedis
+	redis         *redis.Client
 }
 
 func NewTargetServiceService(
 	repository repository.ITargetServiceRepository,
-	factory factory.ITargetServiceFactory,
-	redis redis.IRedis,
-) *TargetServiceService {
+	targetServiceFactory factory.ITargetServiceFactory,
+	redis *redis.Client,
+	domainService domainservice.ITargetDomainService,
+) ITargetServiceService {
 	return &TargetServiceService{
 		repository:    repository,
-		factory:       factory,
-		domainService: domainservice.NewTargetDomainService(repository, factory),
+		factory:       targetServiceFactory,
+		domainService: domainService,
 		redis:         redis,
 	}
 }
@@ -62,10 +65,15 @@ func (s TargetServiceService) Delete(ctx context.Context, command command.Delete
 }
 
 func (s TargetServiceService) Get(ctx context.Context, command command.GetTargetServiceCommand) (*apidtodb.TargetServiceDbDto, error) {
-	var dto apidtodb.TargetServiceDbDto
-	err := s.redis.Get(ctx, command.ID.String(), dto)
+	value, err := s.redis.Get(ctx, command.ID.String()).Bytes()
 
 	if err == nil {
+		var dto apidtodb.TargetServiceDbDto
+
+		if err = json.Unmarshal(value, &dto); err != nil {
+			return &dto, err
+		}
+
 		return &dto, nil
 	}
 

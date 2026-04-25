@@ -8,7 +8,6 @@ import (
 	apidtodb "transport/api/src/dto/db"
 	"transport/api/src/model"
 	"transport/api/src/vo"
-	"transport/internal/infrastructure/db"
 
 	"github.com/google/uuid"
 )
@@ -25,10 +24,10 @@ const (
 )
 
 type TargetServiceRepository struct {
-	connection db.IDB
+	connection *sql.DB
 }
 
-func NewTargetServiceRepository(connection db.IDB) *TargetServiceRepository {
+func NewTargetServiceRepository(connection *sql.DB) ITargetServiceRepository {
 	return &TargetServiceRepository{connection: connection}
 }
 
@@ -40,7 +39,6 @@ func (r TargetServiceRepository) CheckIssetServiceName(
 
 	err := r.
 		connection.
-		Db().
 		QueryRowContext(
 			ctx,
 			fmt.Sprintf("select ts.id from %s ts where ts.service_name = $1", targetServiceTableName),
@@ -60,7 +58,7 @@ func (r TargetServiceRepository) CheckIssetServiceName(
 }
 
 func (r TargetServiceRepository) Save(ctx context.Context, targetService *model.TargetService) error {
-	_, err := r.connection.Db().ExecContext(
+	_, err := r.connection.ExecContext(
 		ctx,
 		fmt.Sprintf("insert into %s (id, service_name, description, base_url, is_active, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7)", targetServiceTableName),
 		targetService.ID(),
@@ -76,7 +74,7 @@ func (r TargetServiceRepository) Save(ctx context.Context, targetService *model.
 }
 
 func (r TargetServiceRepository) Delete(ctx context.Context, uuid uuid.UUID) error {
-	_, err := r.connection.Db().ExecContext(
+	_, err := r.connection.ExecContext(
 		ctx,
 		fmt.Sprintf("delete from %s where id = $1", targetServiceTableName),
 		uuid,
@@ -86,7 +84,7 @@ func (r TargetServiceRepository) Delete(ctx context.Context, uuid uuid.UUID) err
 }
 
 func (r TargetServiceRepository) FindBy(ctx context.Context, uuid uuid.UUID) (*apidtodb.TargetServiceDbDto, error) {
-	row := r.connection.Db().QueryRowContext(ctx,
+	row := r.connection.QueryRowContext(ctx,
 		fmt.Sprintf("SELECT ts.id, ts.service_name, ts.description, ts.base_url, ts.is_active FROM %s ts WHERE ts.id = $1", targetServiceTableName),
 		uuid.String())
 

@@ -1,9 +1,0 @@
-topics:
-  serviceCKafkaTopics:
-    options:
-      kafka:
-        broker.list: '%env(KAFKA_BROKER_LIST)%'
-        group.id: '%env(KAFKA_GROUP_ID)%'
-    consumer_topics:
-      - test5
-      - test6

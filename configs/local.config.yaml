@@ -1,0 +1,9 @@
+DB:
+  DatabaseSourceName: "postgres://admin:admin123@localhost:5432/mydatabase?sslmode=disable"
+Redis:
+  Addr: "localhost:6379"
+  Password: "redis123"
+  DB: 0
+HTTP:
+  Host: "localhost"
+  Port: ":8080"
